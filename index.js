@@ -16,7 +16,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET))
 const port = 3000
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Classroom Management')
 })
 
 // Authentication routes
