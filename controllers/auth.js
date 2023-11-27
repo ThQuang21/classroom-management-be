@@ -4,6 +4,7 @@ const StatusCodes = require('http-status-codes');
 const User = require('../models/user');
 const {RegisterSchema} = require('../validators/registerSchema');
 const {LoginSchema} = require('../validators/loginSchema');
+const { sendActivateEmail } = require('../utils/sendEmailActive');
 require("dotenv").config();
 
 // Register a new user
@@ -23,12 +24,26 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const OTPCode = generateOTP();
     const userCreated = await User.create({
       password: hashedPassword,
       email: req.body.email,
-      name: req.body.name
+      name: req.body.name,
+      activeCode: OTPCode
     });
     await userCreated.save();
+
+    try {
+      await sendActivateEmail(req.body.name, req.body.email, OTPCode);
+
+    } catch (err) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        error: {
+          message: 'Failed to send email'
+        },
+      });
+    }
 
     return res.status(StatusCodes.CREATED).json({
       status: 201,
@@ -57,6 +72,7 @@ const login = async (req, res) => {
     await LoginSchema.validateAsync({ ...req.body });
 
     //find user by email
+    const tmp = await User.deleteMany({})
     const existingUser = await User.findOne({ email: req.body.email });
     if (!existingUser) {
       return res.status(StatusCodes.UNAUTHORIZED).json({
@@ -115,5 +131,13 @@ const login = async (req, res) => {
   }
 }
 
+function generateOTP() { 
+  var digits = '0123456789'; 
+  let OTP = ''; 
+  for (let i = 0; i < 6; i++ ) { 
+      OTP += digits[Math.floor(Math.random() * 10)]; 
+  } 
+  return OTP; 
+} 
 
 module.exports = { register, login };
