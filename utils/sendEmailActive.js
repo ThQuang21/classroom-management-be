@@ -6,7 +6,8 @@ require("dotenv").config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendActivateEmail = async (name, email, activationString) => {
-    const link = "https://classroom-management-be.vercel.app/account/active/" + activationString;
+    const link = "https://classroom-management-be.vercel.app/auth/activate/" 
+    + email + "/" + activationString;
     const message = {
       from: 'haq-classroom@yopmail.com',
       to: email,

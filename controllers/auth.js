@@ -5,7 +5,17 @@ const User = require('../models/user');
 const {RegisterSchema} = require('../validators/registerSchema');
 const {LoginSchema} = require('../validators/loginSchema');
 const { sendActivateEmail } = require('../utils/sendEmailActive');
+const user = require('../models/user');
 require("dotenv").config();
+
+function generateOTP() { 
+  var digits = '0123456789'; 
+  let OTP = ''; 
+  for (let i = 0; i < 6; i++ ) { 
+      OTP += digits[Math.floor(Math.random() * 10)]; 
+  } 
+  return OTP; 
+} 
 
 // Register a new user
 const register = async (req, res) => {
@@ -72,11 +82,10 @@ const login = async (req, res) => {
     await LoginSchema.validateAsync({ ...req.body });
 
     //find user by email
-    const tmp = await User.deleteMany({})
     const existingUser = await User.findOne({ email: req.body.email });
     if (!existingUser) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({
-        status: StatusCodes.UNAUTHORIZED,
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
         error: {
           code: "invalid_email",
           message: "User doesn't exist",
@@ -87,8 +96,8 @@ const login = async (req, res) => {
     //check if pwd is correct
     const isValidPassword = await bcrypt.compare(req.body.password, existingUser.password);
     if (!isValidPassword) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({
-        status: StatusCodes.UNAUTHORIZED,
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
         error: {
           code: "invalid_password",
           message: "Password is not correct",
@@ -131,13 +140,59 @@ const login = async (req, res) => {
   }
 }
 
-function generateOTP() { 
-  var digits = '0123456789'; 
-  let OTP = ''; 
-  for (let i = 0; i < 6; i++ ) { 
-      OTP += digits[Math.floor(Math.random() * 10)]; 
-  } 
-  return OTP; 
-} 
+//Activate user
+const activateAccount = async (req, res) => {
+  try {
+    //find user by email
+    const user = await User.findOne({ email: req.params.email });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "invalid_user",
+          message: "User doesn't exist",
+        },
+      });
+    }
+    //Check activate code
+    if (req.params.activeCode !== user.activeCode) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        status: StatusCodes.FORBIDDEN,
+        error: {
+          code: "invalid_code",
+          message: "Invalid code",
+        },
+      });
+    }
 
-module.exports = { register, login };
+    //Check user status
+    if (user.status === "ACTIVE") {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        status: StatusCodes.FORBIDDEN,
+        error: {
+          code: "user_activated",
+          message: "User is activated",
+        },
+      });
+    }
+
+    user.status = 'ACTIVE';
+    await user.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      message: "Activate account success"
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
+
+module.exports = { register, login, activateAccount };

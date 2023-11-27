@@ -16,8 +16,7 @@ const userSchema = new mongoose.Schema(
         required: true
       },
       activeCode: {
-        type: String,
-        required: true
+        type: String
       },
       role: {
         type: String,
