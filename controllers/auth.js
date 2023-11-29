@@ -6,6 +6,7 @@ const {RegisterSchema} = require('../validators/registerSchema');
 const {LoginSchema} = require('../validators/loginSchema');
 const { sendActivateEmail } = require('../utils/sendEmailActive');
 const user = require('../models/user');
+const { sendEmailResetPwd } = require('../utils/sendEmailResetPwd');
 require("dotenv").config();
 
 function generateOTP() { 
@@ -39,7 +40,7 @@ const register = async (req, res) => {
       password: hashedPassword,
       email: req.body.email,
       name: req.body.name,
-      activeCode: OTPCode
+      userToken: OTPCode
     });
 
     const sendCode = await sendActivateEmail(req.body.name, req.body.email, OTPCode);
@@ -98,16 +99,16 @@ const login = async (req, res) => {
       return res.status(StatusCodes.NOT_FOUND).json({
         status: StatusCodes.NOT_FOUND,
         error: {
-          code: "invalid_password",
-          message: "Password is not correct",
+          code: "invalid_credential",
+          message: "Invalid credentials",
         },
       });
     }
 
     //check status user
     if (existingUser.status === "INACTIVE") {
-      return res.status(StatusCodes.UNAUTHORIZED).json({
-        status: StatusCodes.UNAUTHORIZED,
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
         error: {
           code: "user_inactive",
           message: "User need to be activated",
@@ -154,7 +155,7 @@ const activateAccount = async (req, res) => {
       });
     }
     //Check activate code
-    if (req.params.activeCode !== user.activeCode) {
+    if (req.params.userToken !== user.userToken) {
       return res.status(StatusCodes.FORBIDDEN).json({
         status: StatusCodes.FORBIDDEN,
         error: {
@@ -207,10 +208,8 @@ const resentCode = async (req, res) => {
       });
     }
 
-    try {
-      await sendActivateEmail(existingUser.name, req.body.email, existingUser.activeCode);
-
-    } catch (err) {
+    const sendCode = await sendActivateEmail(existingUser.name, req.body.email, existingUser.userToken);
+    if (sendCode.error) {
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
         status: StatusCodes.INTERNAL_SERVER_ERROR,
         error: {
@@ -220,7 +219,8 @@ const resentCode = async (req, res) => {
     }
 
     return res.status(StatusCodes.OK).json({
-      status: StatusCodes.OK
+      status: StatusCodes.OK,
+      message: "Send email success"
     });
     
 
@@ -235,5 +235,98 @@ const resentCode = async (req, res) => {
   }
 }
 
+const forgotPassword = async (req, res) => {
+  try {
+    //find user by email
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (!existingUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "invalid_email",
+          message: "User doesn't exist",
+        },
+      });
+    }
 
-module.exports = { register, login, activateAccount, resentCode };
+    const OTPCode = generateOTP();
+    const sendCode = await sendEmailResetPwd(existingUser.name, req.body.email, OTPCode);
+    if (sendCode.error) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        error: {
+          message: 'Failed to send email'
+        },
+      });
+    }
+
+    user.userToken = OTPCode;
+    await existingUser.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      message: "We will send you an email to reset your password"
+    });  
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
+const resetPassword = async (req, res) => {
+  try {
+    //find user by email
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (!existingUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "invalid_email",
+          message: "User doesn't exist",
+        },
+      });
+    }
+
+    //Check user token
+    if (req.body.userToken !== existingUser.userToken) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        status: StatusCodes.FORBIDDEN,
+        error: {
+          code: "invalid_code",
+          message: "Invalid code",
+        },
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    existingUser.password = hashedPassword;
+    existingUser.userToken = null;
+
+    await existingUser.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      message: "Password has been changed"
+    });  
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
+module.exports = { 
+  register, login, activateAccount, resentCode,
+  forgotPassword, resetPassword
+};
