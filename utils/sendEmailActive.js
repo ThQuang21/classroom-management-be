@@ -1,6 +1,4 @@
 const sgMail = require('@sendgrid/mail')
-const StatusCodes = require('http-status-codes');
-
 require("dotenv").config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -23,20 +21,13 @@ const sendActivateEmail = async (name, email, activationString) => {
     try {
       await sgMail.send(message);
       console.log('Sent email');
-
+      return { error: false };
     } catch (error) {
       console.error(error);
-  
-      if (error.response) {
-        console.error(error.response.body);
+      return {
+        error: true,
+        message: "Cannot send email",
       }
-
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        error: {
-          message: 'Failed to send email'
-        },
-      });
     }
 };
   

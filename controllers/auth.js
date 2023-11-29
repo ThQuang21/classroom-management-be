@@ -41,12 +41,10 @@ const register = async (req, res) => {
       name: req.body.name,
       activeCode: OTPCode
     });
-    await userCreated.save();
 
-    try {
-      await sendActivateEmail(req.body.name, req.body.email, OTPCode);
-
-    } catch (err) {
+    const sendCode = await sendActivateEmail(req.body.name, req.body.email, OTPCode);
+    if (sendCode.error) {
+      await User.deleteOne({email : req.body.email});
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
         status: StatusCodes.INTERNAL_SERVER_ERROR,
         error: {
@@ -54,6 +52,7 @@ const register = async (req, res) => {
         },
       });
     }
+    await userCreated.save();
 
     return res.status(StatusCodes.CREATED).json({
       status: 201,
