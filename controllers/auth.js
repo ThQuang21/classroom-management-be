@@ -260,7 +260,7 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    user.userToken = OTPCode;
+    existingUser.userToken = OTPCode;
     await existingUser.save();
 
     return res.status(StatusCodes.OK).json({
@@ -293,6 +293,8 @@ const resetPassword = async (req, res) => {
       });
     }
 
+    console.log(req.body.userToken)
+    console.log(existingUser.userToken)
     //Check user token
     if (req.body.userToken !== existingUser.userToken) {
       return res.status(StatusCodes.FORBIDDEN).json({
