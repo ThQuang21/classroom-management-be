@@ -5,7 +5,6 @@ const User = require('../models/user');
 const {RegisterSchema} = require('../validators/registerSchema');
 const {LoginSchema} = require('../validators/loginSchema');
 const { sendActivateEmail } = require('../utils/sendEmailActive');
-const user = require('../models/user');
 const { sendEmailResetPwd } = require('../utils/sendEmailResetPwd');
 require("dotenv").config();
 
