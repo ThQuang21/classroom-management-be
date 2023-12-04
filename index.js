@@ -4,7 +4,8 @@ const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 const flash = require("express-flash")
 const authRoutes = require('./routes/authRoute');
-const cookieSession = require('cookie-session')
+const session = require('express-session')
+const passport = require('passport')
 
 require("dotenv").config();
 require("./utils/connectDB")
@@ -12,16 +13,14 @@ require("./utils/connectDB")
 const app = express()
 app.use(cors({origin: true, credentials: true}));
 app.use(bodyParser.json())
-app.use(cookieParser(process.env.COOKIE_SECRET))
-app.use(
-  cookieSession({
-    resave: true,
-    saveUninitialized: true,
-    secret:"yash is a super star",
-    cookie: { secure: false, maxAge: 14400000 },
-  })
-);
-app.use(flash());
+app.use(cookieParser())
+app.use(session({
+  resave: false,
+  saveUninitialized: true,
+  secret: 'SECRET' 
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 const port = 3000
 

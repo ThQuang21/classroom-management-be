@@ -10,9 +10,9 @@ passport.use(
     {
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback",
+      callbackURL: "https://classroom-management-be.vercel.app/auth/google/callback",
     },
-    function (accessToken, refreshToken, profile, done) {
+    function (req, accessToken, refreshToken, profile, done) {
       //console.log('profile', profile)
 
       const newUser = {
@@ -26,7 +26,7 @@ passport.use(
         const existingUser = User.findOne({ email: profile.email });
 
         //console.log("existingUser", existingUser)
-
+        req.user = newUser;
         if (existingUser) {
           done(null, profile);
 

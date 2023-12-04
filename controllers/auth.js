@@ -95,8 +95,8 @@ const login = async (req, res) => {
     //check if pwd is correct
     const isValidPassword = await bcrypt.compare(req.body.password, existingUser.password);
     if (!isValidPassword) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        status: StatusCodes.NOT_FOUND,
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
         error: {
           code: "invalid_credential",
           message: "Invalid credentials",
@@ -106,8 +106,8 @@ const login = async (req, res) => {
 
     //check status user
     if (existingUser.status === "INACTIVE") {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        status: StatusCodes.BAD_REQUEST,
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
         error: {
           code: "user_inactive",
           message: "User need to be activated",
