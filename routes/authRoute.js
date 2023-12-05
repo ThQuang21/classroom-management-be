@@ -68,7 +68,7 @@ router.get('/google/callback', passport.authenticate('google', {
         accessToken: token,
       });
           // console.log("userData", userData)
-      res.redirect(CLIENT_URL + `handleUserData?userData=${userData}`);
+      res.redirect(CLIENT_URL + `/handleUserData?userData=${userData}`);
     }
 
 
