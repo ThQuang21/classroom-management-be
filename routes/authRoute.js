@@ -78,11 +78,17 @@ router.get('/google/callback', passport.authenticate('google', {
         existingUser = await User.create(newUser);
       }
       const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.SECRET_KEY, { expiresIn: '12h' });
-      newUser.id = existingUser.id;
-      newUser.accessToken = token;
       
-      console.log("newUser", newUser)
-      res.redirect(CLIENT_URL + `/handleUserData?userData=${newUser}`);
+      const userData = JSON.stringify({
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+        status: 'ACTIVE',
+        accessToken: token,
+      });
+      
+      console.log("userData", userData)
+      res.redirect(CLIENT_URL + `/handleUserData?userData=${userData}`);
       
     } catch (error) {
       console.error(error);
