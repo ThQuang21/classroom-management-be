@@ -61,7 +61,7 @@ router.get('/google/callback', passport.authenticate('google', {
 
     const newUser = {
       email: req.user.email,
-      name: req.user.familyName + ' ' + req.user.givenName,
+      name: req.user.displayName,
       status: 'ACTIVE',
       socialLogins: [
         {
