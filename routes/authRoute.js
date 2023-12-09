@@ -60,19 +60,19 @@ router.get('/google/callback', passport.authenticate('google', {
     console.log("req.user", req.user)
 
     const newUser = {
-      email: profile.emails[0].value,
-      name: profile.name.familyName + ' ' + profile.name.givenName,
+      email: req.user.email,
+      name: req.user.familyName + ' ' + req.user.givenName,
       status: 'ACTIVE',
       socialLogins: [
         {
           provider: 'GOOGLE', 
-          socialId: profile.id,
+          socialId: req.user.id,
         },
       ],
     };
 
     try {
-      let existingUser = await User.findOne({ email: profile.email });
+      let existingUser = await User.findOne({ email: req.user.email });
     
       if (!existingUser) {
         existingUser = await User.create(newUser);
