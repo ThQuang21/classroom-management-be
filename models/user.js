@@ -26,7 +26,16 @@ const userSchema = new mongoose.Schema(
         type: String,
         enum: ['ACTIVE', 'INACTIVE'],
         default: 'INACTIVE'
-      }
+      },
+      socialLogins: [
+        {
+          provider: {
+            type: String,
+            enum: ['GOOGLE', 'FACEBOOK'],
+          },
+          socialId: String,
+        },
+      ],
     },
     { timestamps: true }
   );

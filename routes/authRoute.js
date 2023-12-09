@@ -57,6 +57,9 @@ router.get('/google/callback', passport.authenticate('google', {
   }), (req, res) => {
     // res.redirect(CLIENT_URL);
 
+    console.log("req.user", req.user)
+
+
     if (req.user) {
       const token = jwt.sign({ userId: req.user._id, email: req.user.email }, process.env.SECRET_KEY, { expiresIn: '12h' });
 
@@ -67,7 +70,7 @@ router.get('/google/callback', passport.authenticate('google', {
         status: 'ACTIVE',
         accessToken: token,
       });
-          // console.log("userData", userData)
+          console.log("userData", userData)
       res.redirect(CLIENT_URL + `/handleUserData?userData=${userData}`);
     }
 

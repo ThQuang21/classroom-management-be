@@ -12,27 +12,32 @@ passport.use(
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: "https://classroom-management-be.vercel.app/auth/google/callback",
     },
-    function (req, accessToken, refreshToken, profile, done) {
-      //console.log('profile', profile)
+    async(req, accessToken, refreshToken, profile, done) => {
+      // console.log('profile', profile)
 
       const newUser = {
-        id: profile.id,
         email: profile.emails[0].value,
         name: profile.name.familyName + ' ' + profile.name.givenName,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        socialLogins: [
+          {
+            provider: 'GOOGLE', 
+            socialId: profile.id,
+          },
+        ],
       };
 
       try {
         const existingUser = User.findOne({ email: profile.email });
-
-        //console.log("existingUser", existingUser)
-        req.user = newUser;
+        console.log("existingUser", existingUser)
+        
         if (existingUser) {
-          done(null, profile);
+          return done(null, profile);
 
         } else {
-          existingUser = User.create(newUser);
-          done(null, profile);
+          const createdUser = await User.create(newUser);
+          createdUser.save()
+          return done(null, profile);
         }
       } catch (err) {
         console.log(err);
@@ -46,7 +51,8 @@ passport.serializeUser((user, done) => {
     done(null, user);
   });
   
-passport.deserializeUser((user, done) => {
-  console.log('deserializeUser', user)
-  done(null, user);
+passport.deserializeUser(async (user, done) => {
+  const currentUser = await User.findOne({id});
+  console.log('deserializeUser', currentUser)
+  done(null, currentUser);
 });
