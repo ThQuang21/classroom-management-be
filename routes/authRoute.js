@@ -6,7 +6,7 @@ const {
 } = require('../controllers/auth');
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
-
+const User = require('../models/user');
 
 const CLIENT_URL = "https://classroom-management-fe.vercel.app"
 // const CLIENT_URL = "http://localhost:3001/"
