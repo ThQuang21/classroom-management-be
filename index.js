@@ -2,10 +2,11 @@ const express = require('express')
 const cors = require("cors")
 const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
-const flash = require("express-flash")
-const authRoutes = require('./routes/authRoute');
 const session = require('express-session')
 const passport = require('passport')
+
+const authRoutes = require('./routes/authRoute');
+const classRoutes = require('./routes/classRoute');
 
 require("dotenv").config();
 require("./utils/connectDB")
@@ -29,8 +30,8 @@ app.get('/', (req, res) => {
   res.send('Classroom Management')
 })
 
-// Authentication routes
-app.use('/auth', authRoutes);
+app.use('/auth', authRoutes); // Authentication routes
+app.use('/classes', classRoutes); // Class routes
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
