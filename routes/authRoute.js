@@ -78,7 +78,7 @@ router.get('/google/callback', passport.authenticate('google', {
         existingUser = await User.create(newUser);
       }
       const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.SECRET_KEY, { expiresIn: '12h' });
-      newUser.id = existingUser._id;
+      newUser.id = existingUser.id;
       newUser.accessToken = token;
       
       console.log("newUser", newUser)
