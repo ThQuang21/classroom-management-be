@@ -54,27 +54,39 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback', passport.authenticate('google', {
   failureRedirect: CLIENT_URL + '/login',
   failureFlash: true
-  }), (req, res) => {
+  }), async (req, res) => {
     // res.redirect(CLIENT_URL);
 
     console.log("req.user", req.user)
 
+    const newUser = {
+      email: profile.emails[0].value,
+      name: profile.name.familyName + ' ' + profile.name.givenName,
+      status: 'ACTIVE',
+      socialLogins: [
+        {
+          provider: 'GOOGLE', 
+          socialId: profile.id,
+        },
+      ],
+    };
 
-    if (req.user) {
-      const token = jwt.sign({ userId: req.user._id, email: req.user.email }, process.env.SECRET_KEY, { expiresIn: '12h' });
-
-      const userData = JSON.stringify({
-        id: req.user.id,
-        name: req.user.name.familyName + ' ' + req.user.name.givenName,
-        email: req.user.email,
-        status: 'ACTIVE',
-        accessToken: token,
-      });
-          console.log("userData", userData)
-      res.redirect(CLIENT_URL + `/handleUserData?userData=${userData}`);
+    try {
+      let existingUser = await User.findOne({ email: profile.email });
+    
+      if (!existingUser) {
+        existingUser = await User.create(newUser);
+      }
+      const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.SECRET_KEY, { expiresIn: '12h' });
+      newUser.id = existingUser._id;
+      newUser.accessToken = token;
+      
+      console.log("newUser", newUser)
+      res.redirect(CLIENT_URL + `/handleUserData?userData=${newUser}`);
+      
+    } catch (error) {
+      console.error(error);
     }
-
-
 });
 
 

@@ -14,34 +14,7 @@ passport.use(
     },
     async(req, accessToken, refreshToken, profile, done) => {
       // console.log('profile', profile)
-
-      const newUser = {
-        email: profile.emails[0].value,
-        name: profile.name.familyName + ' ' + profile.name.givenName,
-        status: 'ACTIVE',
-        socialLogins: [
-          {
-            provider: 'GOOGLE', 
-            socialId: profile.id,
-          },
-        ],
-      };
-
-      try {
-        const existingUser = User.findOne({ email: profile.email });
-        console.log("existingUser", existingUser)
-        
-        if (existingUser) {
-          return done(null, profile);
-
-        } else {
-          const createdUser = await User.create(newUser);
-          createdUser.save()
-          return done(null, profile);
-        }
-      } catch (err) {
-        console.log(err);
-      }
+return done(null, profile);
     }
   )
 );
