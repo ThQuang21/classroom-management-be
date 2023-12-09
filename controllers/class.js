@@ -18,7 +18,7 @@ const createClass = async (req, res) => {
     const invitationCode = generateRandomString(Math.floor(Math.random() * (7 - 5 + 1)) + 5); // 5-7 letters
 
     const newClass = await Class.create({
-      className: req.className,
+      className: req.body.className,
       section: req.body.section,
       subject: req.body.subject,
       room: req.body.room,
