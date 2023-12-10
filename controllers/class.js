@@ -1,5 +1,7 @@
 const Class = require('../models/class');
+const User = require('../models/user');
 const StatusCodes = require('http-status-codes');
+const { ObjectId } = require('mongodb');
 
 const generateRandomString = (length) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -13,16 +15,36 @@ const generateRandomString = (length) => {
 // Create a new class
 const createClass = async (req, res) => {
   try {
-    console.log(req.body)
+    const existingClass = await Class.findOne({
+      'teachers.id': req.body.teacherId,
+      className: req.body.className
+    });
+
+    if (existingClass) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        error: {
+          code: "class_exist",
+          message: 'Class with the same teacher and class name already exists.',
+        },
+      });
+    }
+
     const classCode = generateRandomString(16); //16 letters
     const invitationCode = generateRandomString(Math.floor(Math.random() * (7 - 5 + 1)) + 5); // 5-7 letters
+    const teacher = await User.findOne({ _id: new ObjectId(req.body.teacherId)});
 
     const newClass = await Class.create({
       className: req.body.className,
       section: req.body.section,
       subject: req.body.subject,
       room: req.body.room,
-      teachers: [req.body.teacherId], 
+      teachers: [
+        {
+          id: req.body.teacherId,
+          name: teacher.name
+        }
+      ], 
       classCode: classCode,
       invitationCode: invitationCode,
     });
@@ -44,6 +66,32 @@ const createClass = async (req, res) => {
   }
 };
 
+//List class by teacherId
+const listClassesByTeacherId = async (req, res) => {
+  try {
+    console.log(req.params)
+    const teacherId = req.params.teacherId; 
+    const classes = await Class.find({
+      'teachers.id': teacherId
+    });
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: classes,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
-  createClass
+  createClass,
+  listClassesByTeacherId
 };

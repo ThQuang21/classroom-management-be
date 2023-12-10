@@ -7,7 +7,8 @@ const classSchema = new mongoose.Schema({
   },
   teachers: [
     {
-      type: String,
+      id: String,
+      name: String
     }
   ],
   students: [
