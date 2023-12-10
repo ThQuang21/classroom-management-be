@@ -66,10 +66,9 @@ const createClass = async (req, res) => {
   }
 };
 
-//List class by teacherId
+// List class by teacherId
 const listClassesByTeacherId = async (req, res) => {
   try {
-    console.log(req.params)
     const teacherId = req.params.teacherId; 
     const classes = await Class.find({
       'teachers.id': teacherId
@@ -91,7 +90,41 @@ const listClassesByTeacherId = async (req, res) => {
   }
 };
 
+// Get class detail
+const getClassByClassCode = async (req, res) => {
+  try {
+    const classCode = req.params.classCode; 
+
+    const foundClass = await Class.findOne({ classCode });
+
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "Class not found with the classcode :" + classCode,
+        },
+      });
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: foundClass,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
   createClass,
-  listClassesByTeacherId
+  listClassesByTeacherId,
+  getClassByClassCode
 };
