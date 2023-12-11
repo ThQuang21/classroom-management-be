@@ -288,11 +288,56 @@ const joinClassByCode = async (req, res) => {
   }
 };
 
+// Get people by classcode
+const getPeopleByClassCode = async (req, res) => {
+  try {
+    const classCode = req.params.classCode;
+    const foundClass = await Class.findOne({ classCode });
+
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "Class not found with the classcode: " + classCode,
+        },
+      });
+    }
+
+  // Extract teacher and student ids
+  const teacherIds = foundClass.teachers.map(teacher => teacher.id);
+  const studentIds = foundClass.students;
+
+  // Fetch detailed information for teachers and students
+  const teachers = await User.find({ _id: { $in: teacherIds } }).select('name email');
+  const students = await User.find({ _id: { $in: studentIds } }).select('name email studentId');
+
+  return res.status(StatusCodes.OK).json({
+    status: StatusCodes.OK,
+    data: {
+      className: foundClass.className,
+      teachers: teachers,
+      students: students,
+    },
+  });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
   listClassesByStudentId,
   getClassByClassCode,
   joinClassByLink,
-  joinClassByCode
+  joinClassByCode,
+  getPeopleByClassCode
 };
