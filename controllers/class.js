@@ -31,7 +31,14 @@ const createClass = async (req, res) => {
     }
 
     const classCode = generateRandomString(16); //16 letters
-    const invitationCode = generateRandomString(Math.floor(Math.random() * (7 - 5 + 1)) + 5); // 5-7 letters
+    // Loop until a unique invitation code is generated
+    do {
+      invitationCode = generateRandomString(Math.floor(Math.random() * (7 - 5 + 1)) + 5); // 5-7 letters
+
+      // Check if the invitationCode is already in use
+      const existingClass = await Class.findOne({ invitationCode });
+    } while (existingClass);
+
     const teacher = await User.findOne({ _id: new ObjectId(req.body.teacherId)});
 
     const newClass = await Class.create({
@@ -169,9 +176,56 @@ const joinClassByLink = async (req, res) => {
   }
 };
 
+// Join class by code
+const joinClassByCode = async (req, res) => {
+  try {
+    const { invitationCode, userId } = req.body;
+
+    const existingClass = await Class.findOne({ invitationCode });
+
+    if (!existingClass) {
+      return res.status(404).json({
+        status: 404,
+        error: {
+          code: 'not_found',
+          message: 'Class not found.',
+        },
+      });
+    }
+
+    // Check if the user is already in the class
+    if (existingClass.students.includes(userId)) {
+      return res.status(400).json({
+        status: 400,
+        error: {
+          code: 'user_exist',
+          message: 'You already exist in the class.',
+        },
+      });
+    }
+
+    existingClass.students.push(userId);
+    await existingClass.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: existingClass,
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
   getClassByClassCode,
-  joinClassByLink
+  joinClassByLink,
+  joinClassByCode
 };
