@@ -123,8 +123,55 @@ const getClassByClassCode = async (req, res) => {
   }
 };
 
+// Join class by link
+const joinClassByLink = async (req, res) => {
+  try {
+    const { invitationCode, classCode, userId } = req.body;
+
+    const existingClass = await Class.findOne({ classCode, invitationCode });
+
+    if (!existingClass) {
+      return res.status(404).json({
+        status: 404,
+        error: {
+          code: 'not_found',
+          message: 'Class not found.',
+        },
+      });
+    }
+
+    // Check if the user is already in the class
+    if (existingClass.students.includes(userId)) {
+      return res.status(400).json({
+        status: 400,
+        error: {
+          code: 'user_exist',
+          message: 'You already exist in the class.',
+        },
+      });
+    }
+
+    existingClass.students.push(userId);
+    await existingClass.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: existingClass,
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
-  getClassByClassCode
+  getClassByClassCode,
+  joinClassByLink
 };

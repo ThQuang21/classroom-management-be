@@ -23,6 +23,7 @@ const classSchema = new mongoose.Schema({
   },
   invitationCode: {
     type: String,
+    unique: true,
   },
   section: {
     type: String,
