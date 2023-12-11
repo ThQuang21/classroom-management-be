@@ -81,6 +81,50 @@ const listClassesByTeacherId = async (req, res) => {
       'teachers.id': teacherId
     });
 
+    if (classes.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "You are not teaching any class.",
+        },
+      });
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: classes,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
+// List class by studentId
+const listClassesByStudentId = async (req, res) => {
+  try {
+    const studentId = req.params.studentId; 
+    const classes = await Class.find({
+      'students': studentId,
+    });
+
+    if (classes.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "You are not joined any class.",
+        },
+      });
+    }
+
     return res.status(StatusCodes.OK).json({
       status: StatusCodes.OK,
       data: classes,
@@ -158,6 +202,17 @@ const joinClassByLink = async (req, res) => {
       });
     }
 
+    // Check if the user is already in the class as a teacher
+    if (existingClass.teachers.some(teacher => teacher.id === userId)) {
+      return res.status(400).json({
+        status: 400,
+        error: {
+          code: 'user_exist',
+          message: 'You already exist in the class as a teacher.',
+        },
+      });
+    }
+
     existingClass.students.push(userId);
     await existingClass.save();
 
@@ -204,6 +259,17 @@ const joinClassByCode = async (req, res) => {
       });
     }
 
+    // Check if the user is already in the class as a teacher
+    if (existingClass.teachers.some(teacher => teacher.id === userId)) {
+      return res.status(400).json({
+        status: 400,
+        error: {
+          code: 'user_exist',
+          message: 'You already exist in the class as a teacher.',
+        },
+      });
+    }
+
     existingClass.students.push(userId);
     await existingClass.save();
 
@@ -225,6 +291,7 @@ const joinClassByCode = async (req, res) => {
 module.exports = { 
   createClass,
   listClassesByTeacherId,
+  listClassesByStudentId,
   getClassByClassCode,
   joinClassByLink,
   joinClassByCode
