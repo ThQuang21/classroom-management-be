@@ -2,6 +2,8 @@ const Class = require('../models/class');
 const User = require('../models/user');
 const StatusCodes = require('http-status-codes');
 const { ObjectId } = require('mongodb');
+const { sendEmailInviteStudent } = require('../utils/sendEmailInviteStudent');
+const { sendEmailInviteTeacher } = require('../utils/sendEmailInviteTeacher');
 
 const generateRandomString = (length) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -11,6 +13,19 @@ const generateRandomString = (length) => {
   }
   return result;
 };
+
+function encrypt(text, key) {
+  let encryptedText = '';
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+    encryptedText += String.fromCharCode(char ^ key);
+  }
+  return encryptedText;
+}
+
+function decrypt(encryptedText, key) {
+  return encrypt(encryptedText, key); // XOR operation is its own inverse
+}
 
 // Create a new class
 const createClass = async (req, res) => {
@@ -177,9 +192,9 @@ const getClassByClassCode = async (req, res) => {
 // Join class by link
 const joinClassByLink = async (req, res) => {
   try {
-    const { invitationCode, classCode, userId } = req.body;
+    const { classCode, invitationCode, userId } = req.body;
 
-    const existingClass = await Class.findOne({ classCode, invitationCode });
+    const existingClass = await Class.findOne({ invitationCode : invitationCode });
 
     if (!existingClass) {
       return res.status(404).json({
@@ -191,7 +206,7 @@ const joinClassByLink = async (req, res) => {
       });
     }
 
-    // Check if the user is already in the class
+    // Check if the user is already in the class as a student
     if (existingClass.students.includes(userId)) {
       return res.status(400).json({
         status: 400,
@@ -213,7 +228,17 @@ const joinClassByLink = async (req, res) => {
       });
     }
 
-    existingClass.students.push(userId);
+    const decryptedClassCode = decrypt(classCode, 13);
+    if (decryptedClassCode === existingClass.classCode) {
+      // Find the user by userId to get the teacher's name
+      const teacher = await User.findOne({ _id: userId });
+      existingClass.teachers.push({ id: userId, name: teacher.name });
+
+    } else {
+      // Add the student to the students array
+      existingClass.students.push(userId);
+    }
+
     await existingClass.save();
 
     return res.status(StatusCodes.OK).json({
@@ -331,6 +356,44 @@ const getPeopleByClassCode = async (req, res) => {
   }
 };
 
+//Invite by email 
+const inviteByEmail = async (req, res) => {
+  try {
+    const {email, classCode, isTeacher} = req.body;
+
+    const foundClass = await Class.findOne({ classCode });
+
+    let sendCode = null;
+    if (!isTeacher) {
+      sendCode = await sendEmailInviteStudent(email, classCode, foundClass.invitationCode, foundClass.teachers[0].name, foundClass.className);
+    } else {
+      const encryptedText = encrypt(classCode, 13);
+      sendCode = await sendEmailInviteTeacher(email, encryptedText, foundClass.invitationCode, foundClass.teachers[0].name, foundClass.className);
+    }
+    if (sendCode.error) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        error: {
+          message: 'Failed to send email'
+        },
+      });
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      message: "Send email success"
+    });
+    
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
 
 module.exports = { 
   createClass,
@@ -339,5 +402,6 @@ module.exports = {
   getClassByClassCode,
   joinClassByLink,
   joinClassByCode,
-  getPeopleByClassCode
+  getPeopleByClassCode,
+  inviteByEmail
 };

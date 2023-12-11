@@ -7,7 +7,8 @@ const {
     listClassesByStudentId,
     joinClassByLink,
     joinClassByCode,
-    getPeopleByClassCode
+    getPeopleByClassCode,
+    inviteByEmail
 } = require('../controllers/class');
 
 router.post('/', createClass);
@@ -18,6 +19,8 @@ router.post('/join-class', joinClassByLink);
 router.post('/join-class-by-code', joinClassByCode);
 
 router.get('/get-people/:classCode', getPeopleByClassCode);
+
+router.post('/invite-by-email', inviteByEmail)
 
 
 module.exports = router;
