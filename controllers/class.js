@@ -194,7 +194,7 @@ const joinClassByLink = async (req, res) => {
   try {
     const { classCode, invitationCode, userId } = req.body;
 
-    const existingClass = await Class.findOne({ invitationCode : invitationCode });
+    const existingClass = await Class.findOne({ classCode : classCode });
 
     if (!existingClass) {
       return res.status(404).json({
@@ -228,8 +228,8 @@ const joinClassByLink = async (req, res) => {
       });
     }
 
-    const decryptedClassCode = decrypt(classCode, 13);
-    if (decryptedClassCode === existingClass.classCode) {
+    const decryptedClassCode = decrypt(invitationCode, 13);
+    if (decryptedClassCode === existingClass.invitationCode) {
       // Find the user by userId to get the teacher's name
       const teacher = await User.findOne({ _id: userId });
       existingClass.teachers.push({ id: userId, name: teacher.name });
@@ -367,8 +367,8 @@ const inviteByEmail = async (req, res) => {
     if (!isTeacher) {
       sendCode = await sendEmailInviteStudent(email, classCode, foundClass.invitationCode, foundClass.teachers[0].name, foundClass.className);
     } else {
-      const encryptedText = encrypt(classCode, 13);
-      sendCode = await sendEmailInviteTeacher(email, encryptedText, foundClass.invitationCode, foundClass.teachers[0].name, foundClass.className);
+      const encryptedText = encrypt(foundClass.invitationCode, 13);
+      sendCode = await sendEmailInviteTeacher(email, classCode, encryptedText, foundClass.teachers[0].name, foundClass.className);
     }
     if (sendCode.error) {
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
