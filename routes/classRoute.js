@@ -8,7 +8,9 @@ const {
     joinClassByLink,
     joinClassByCode,
     getPeopleByClassCode,
-    inviteByEmail
+    inviteByEmail,
+    updateGradeCompositionByClassCode,
+    getGradeCompositionByClassCode
 } = require('../controllers/class');
 
 router.post('/', createClass);
@@ -18,9 +20,14 @@ router.get('/list-classes-by-student/:studentId', listClassesByStudentId);
 router.post('/join-class', joinClassByLink);
 router.post('/join-class-by-code', joinClassByCode);
 
-router.get('/get-people/:classCode', getPeopleByClassCode);
-
+//Invite
 router.post('/invite-by-email', inviteByEmail)
 
+//People
+router.get('/get-people/:classCode', getPeopleByClassCode);
+
+//Grade
+router.get('/:classCode/gradeCompositions', getGradeCompositionByClassCode)
+router.put('/:classCode/gradeCompositions', updateGradeCompositionByClassCode)
 
 module.exports = router;

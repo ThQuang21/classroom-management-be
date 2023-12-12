@@ -395,6 +395,80 @@ const inviteByEmail = async (req, res) => {
   }
 };
 
+// Update gradeCompositions by classCode
+const updateGradeCompositionByClassCode = async (req, res) => {
+  try {
+    const { classCode } = req.params;
+    const { gradeCompositions } = req.body;
+
+    const foundClass = await Class.findOne({ classCode });
+
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "Class not found with the classcode: " + classCode,
+        },
+      });
+    }
+
+  foundClass.gradeCompositions = gradeCompositions;
+  const updatedClass = await foundClass.save();
+
+  return res.status(StatusCodes.OK).json({
+    status: StatusCodes.OK,
+    data: {
+      class: updatedClass
+    },
+  });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
+// Get gradeCompositions by classCode
+const getGradeCompositionByClassCode = async (req, res) => {
+  try {
+    const { classCode } = req.params;
+
+    const foundClass = await Class.findOne({ classCode });
+
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "Class not found with the classcode: " + classCode,
+        },
+      });
+    }
+
+    const gradeCompositions = foundClass.gradeCompositions;
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: {
+        gradeCompositions
+      },
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
@@ -403,5 +477,7 @@ module.exports = {
   joinClassByLink,
   joinClassByCode,
   getPeopleByClassCode,
-  inviteByEmail
+  inviteByEmail,
+  updateGradeCompositionByClassCode,
+  getGradeCompositionByClassCode
 };

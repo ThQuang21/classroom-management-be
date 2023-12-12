@@ -1,5 +1,24 @@
 const mongoose = require('mongoose');
 
+const gradeCompositionSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  gradeScale: {
+    type: Number,
+    required: true,
+  },
+  position: {
+    type: Number,
+    required: true,
+  },
+  finalized: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const classSchema = new mongoose.Schema({
   className: {
     type: String,
@@ -33,6 +52,16 @@ const classSchema = new mongoose.Schema({
   },
   room: {
     type: String,
+  },
+  gradeCompositions: {
+    type: [gradeCompositionSchema],
+    default: [
+      {
+        name: 'Exam',
+        gradeScale: '100',
+        position: 1,
+      },
+    ],
   },
 });
 
