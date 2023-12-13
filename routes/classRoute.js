@@ -16,7 +16,7 @@ const {
 
 router.post('/', createClass);
 router.get('/:classCode', getClassByClassCode);
-router.get('/:invitationCode', getClassByInvitationCode);
+router.get('/invite/:invitationCode', getClassByInvitationCode);
 router.get('/list-classes-by-teacher/:teacherId', listClassesByTeacherId);
 router.get('/list-classes-by-student/:studentId', listClassesByStudentId);
 router.post('/join-class', joinClassByLink);
