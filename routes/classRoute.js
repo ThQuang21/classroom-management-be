@@ -5,6 +5,7 @@ const {
     getClassByClassCode,
     listClassesByTeacherId,
     listClassesByStudentId,
+    getClassByInvitationCode,
     joinClassByLink,
     joinClassByCode,
     getPeopleByClassCode,
