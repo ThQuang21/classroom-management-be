@@ -197,30 +197,36 @@ const getClassByClassCode = async (req, res) => {
 const getClassByInvitationCode = async (req, res) => {
   try {
     const invitationCode = req.params.invitationCode; 
-
     const foundClass = await Class.findOne({ invitationCode });
+    const decryptedClassCode = decrypt(invitationCode, 13);
+    var data;
 
     if (!foundClass) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        status: StatusCodes.NOT_FOUND,
-        error: {
-          code: "not_found",
-          message: "Class not found with the invitationCode :" + invitationCode,
-        },
-      });
-    }
+      const foundClassEncrypted = await Class.findOne({ decryptedClassCode });
 
-    const decryptedClassCode = decrypt(invitationCode, 13);
-    var isTeacher = false;
-    if (decryptedClassCode === foundClass.invitationCode) {
-      isTeacher = true;
-    }
-
-    const data = {
-      teachers: foundClass.teachers,
-      className: foundClass.className,
-      classCode: foundClass.classCode,
-      isTeacher : true
+      if (!foundClassEncrypted) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          status: StatusCodes.NOT_FOUND,
+          error: {
+            code: "not_found",
+            message: "Class not found with the invitationCode :" + invitationCode,
+          },
+        });
+      } else {
+        data = {
+          teachers: foundClassEncrypted.teachers,
+          className: foundClassEncrypted.className,
+          classCode: foundClassEncrypted.classCode,
+          isTeacher : true
+        }
+      }
+    } else {
+      data = {
+        teachers: foundClass.teachers,
+        className: foundClass.className,
+        classCode: foundClass.classCode,
+        isTeacher : false
+      }
     }
 
     return res.status(StatusCodes.OK).json({
