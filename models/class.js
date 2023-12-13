@@ -30,6 +30,10 @@ const classSchema = new mongoose.Schema({
       name: String
     }
   ],
+  classOwner: {
+    id: String,
+    name: String,
+  },
   students: [
     {
       type: String,

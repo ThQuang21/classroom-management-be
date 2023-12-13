@@ -67,6 +67,10 @@ const createClass = async (req, res) => {
           name: teacher.name
         }
       ], 
+      classOwner: {
+        id: req.body.teacherId,
+        name: teacher.name,
+      },
       classCode: classCode,
       invitationCode: invitationCode,
     });
@@ -332,10 +336,12 @@ const getPeopleByClassCode = async (req, res) => {
   // Extract teacher and student ids
   const teacherIds = foundClass.teachers.map(teacher => teacher.id);
   const studentIds = foundClass.students;
+  const classOwnerId = foundClass.classOwner.id;
 
   // Fetch detailed information for teachers and students
   const teachers = await User.find({ _id: { $in: teacherIds } }).select('name email');
   const students = await User.find({ _id: { $in: studentIds } }).select('name email studentId');
+  const classOwner = await User.findById(classOwnerId).select('name email');
 
   return res.status(StatusCodes.OK).json({
     status: StatusCodes.OK,
@@ -343,6 +349,7 @@ const getPeopleByClassCode = async (req, res) => {
       className: foundClass.className,
       teachers: teachers,
       students: students,
+      classOwner: classOwner
     },
   });
   } catch (err) {
