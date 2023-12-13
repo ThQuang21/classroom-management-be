@@ -202,14 +202,14 @@ const getClassByInvitationCode = async (req, res) => {
     var data;
 
     if (!foundClass) {
-      const foundClassEncrypted = await Class.findOne({ decryptedClassCode });
+      const foundClassEncrypted = await Class.findOne({ invitationCode : decryptedClassCode });
 
       if (!foundClassEncrypted) {
         return res.status(StatusCodes.NOT_FOUND).json({
           status: StatusCodes.NOT_FOUND,
           error: {
             code: "not_found",
-            message: "Class not found with the invitationCode :" + invitationCode,
+            message: "Class not found with the invitationCode :" + foundClassEncrypted,
           },
         });
       } else {
