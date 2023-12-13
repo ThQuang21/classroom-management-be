@@ -233,11 +233,12 @@ const joinClassByLink = async (req, res) => {
     }
 
     const decryptedClassCode = decrypt(invitationCode, 13);
+    var isTeacher = false;
     if (decryptedClassCode === existingClass.invitationCode) {
       // Find the user by userId to get the teacher's name
       const teacher = await User.findOne({ _id: userId });
       existingClass.teachers.push({ id: userId, name: teacher.name });
-
+      isTeacher = true;
     } else {
       // Add the student to the students array
       existingClass.students.push(userId);
@@ -245,9 +246,16 @@ const joinClassByLink = async (req, res) => {
 
     await existingClass.save();
 
+    const data = {
+      teachers: existingClass.teachers,
+      className: existingClass.className,
+      classCode: existingClass.classCode,
+      isTeacher : true
+    }
+
     return res.status(StatusCodes.OK).json({
       status: StatusCodes.OK,
-      data: existingClass,
+      data: data,
     });
   } catch (err) {
     return res.status(StatusCodes.BAD_REQUEST).json({
