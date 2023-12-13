@@ -193,7 +193,52 @@ const getClassByClassCode = async (req, res) => {
   }
 };
 
-// Join class by link
+// Join class by invitationCode
+const getClassByInvitationCode = async (req, res) => {
+  try {
+    const invitationCode = req.params.invitationCode; 
+
+    const foundClass = await Class.findOne({ invitationCode });
+
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "not_found",
+          message: "Class not found with the invitationCode :" + invitationCode,
+        },
+      });
+    }
+
+    const decryptedClassCode = decrypt(invitationCode, 13);
+    var isTeacher = false;
+    if (decryptedClassCode === foundClass.invitationCode) {
+      isTeacher = true;
+    }
+
+    const data = {
+      teachers: foundClass.teachers,
+      className: foundClass.className,
+      classCode: foundClass.classCode,
+      isTeacher : true
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: data,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
 const joinClassByLink = async (req, res) => {
   try {
     const { classCode, invitationCode, userId } = req.body;
@@ -489,6 +534,7 @@ module.exports = {
   listClassesByTeacherId,
   listClassesByStudentId,
   getClassByClassCode,
+  getClassByInvitationCode,
   joinClassByLink,
   joinClassByCode,
   getPeopleByClassCode,
