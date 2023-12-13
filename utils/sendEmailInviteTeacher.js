@@ -4,7 +4,7 @@ require("dotenv").config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendEmailInviteTeacher = async (email, classCode, invitationCode, teacherName, className) => {
-    const link = "http://localhost:3001/join-class/" 
+    const link = "https://classroom-management-fe.vercel.app/join-class/" 
     + classCode + "?inviteC=" + invitationCode;
 
     const message = {
