@@ -13,7 +13,8 @@ const sendEmailInviteStudent = async (email, classCode, invitationCode, teacherN
       subject: 'Invitation to join class: ' + className,
       html: `<h1 style="text-align: center ">Welcome HAQ Classroom Management</h1>
       <p style="font-weight: bold;">Hi there,</p>
-      <p> ${teacherName} has invited you to join the class <strong>${className}</strong> on HAQ Classroom Management. Please click this <a clicktracking="off" href='${link}'>link</a> to join.</p>
+      <p>You were invited to join the class <strong>${className}</strong> of ${teacherName} as a student on HAQ Classroom Management.
+      Please click this <a clicktracking="off" href='${link}'>link</a> to join.</p>
       <p>Thanks! <p/>
       <p>HAQ team</p></h3>`,
     };
