@@ -64,7 +64,7 @@ async function createGrades(req, res) {
       console.log(foundClass)
        if (foundClass) {
         grade.grades = foundClass.gradeCompositions.map((structure) => ({
-          gradeCompositionId: structure._id,
+          gradeCompositionId: structure.id,
           grade: 0, // You can set the default grade value
         }));
   
@@ -122,11 +122,13 @@ async function getGradesByClassCode(req, res) {
 
       const studentData = studentGradesMap.get(studentId);
       
+      console.log('grade', grade);
+
       for (let i = 0; i < grade.grades.length; i++) {
         const gradeCompositionId = grade.grades[i].gradeCompositionId;
 
         const gradeComposition = foundClass.gradeCompositions.find(
-          (composition) => composition._id.toString() === gradeCompositionId.toString()
+          (composition) => composition.id.toString() === gradeCompositionId.toString()
         );
 
         // Add the grade to the student data
