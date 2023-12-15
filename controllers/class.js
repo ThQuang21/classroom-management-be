@@ -527,7 +527,7 @@ const updateGradeCompositionByClassCode = async (req, res) => {
         })
 
         //add new 
-        if (updatedGrade.includes(gradeCompId)) {
+        if (!updatedGrade.includes(gradeCompId)) {
           updatedGrade.push({
             gradeCompositionId: gradeCompId,
             grade: 0
