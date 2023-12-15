@@ -69,4 +69,7 @@ const classSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("class", classSchema);
+const GradeComposition = mongoose.model('gradeComposition', gradeCompositionSchema);
+const Class = mongoose.model('class', classSchema);
+
+module.exports = { GradeComposition, Class };
