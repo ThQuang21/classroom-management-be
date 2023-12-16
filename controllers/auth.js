@@ -327,7 +327,32 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const updateName = async (req, res) => {
+  try { 
+    console.log(req.body)
+    const userUpdate = await User.findOneAndUpdate({email: req.body.email}, {name: req.body.name})
+
+    return res.status(StatusCodes.OK).json({
+      status: 200,
+      data: {
+        name: userUpdate.name,
+        email: userUpdate.email,
+        id: userUpdate.id,
+      },
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   register, login, activateAccount, resentCode,
-  forgotPassword, resetPassword
+  forgotPassword, resetPassword, updateName
 };
