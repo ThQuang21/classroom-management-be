@@ -1,9 +1,12 @@
-const Class = require('../models/class');
+const MyClass = require('../models/class');
+const Class = MyClass.Class;
 const User = require('../models/user');
+const Grade = require('../models/grade');
 const StatusCodes = require('http-status-codes');
 const { ObjectId } = require('mongodb');
 const { sendEmailInviteStudent } = require('../utils/sendEmailInviteStudent');
 const { sendEmailInviteTeacher } = require('../utils/sendEmailInviteTeacher');
+const { Mongoose, default: mongoose } = require('mongoose');
 
 const generateRandomString = (length) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -76,6 +79,10 @@ const createClass = async (req, res) => {
     });
 
     await newClass.save();
+    newClass.gradeCompositions[0].id = newClass.gradeCompositions[0]._id;
+    await newClass.save();
+    console.log(newClass);
+
     return res.status(StatusCodes.CREATED).json({
       status: 201,
       data: newClass,
@@ -479,24 +486,109 @@ const updateGradeCompositionByClassCode = async (req, res) => {
       });
     }
 
-  foundClass.gradeCompositions = gradeCompositions;
-  const updatedClass = await foundClass.save();
+    foundClass.gradeCompositions = gradeCompositions;
+    for (const gradeComposition of foundClass.gradeCompositions) {
+      if (!gradeComposition.id) {
+        const id = new ObjectId();
+        console.log("************", id);
+        gradeComposition._id = id;
+        gradeComposition.id = id.toString();
+        foundClass.gradeCompositions.id = id.toString();
+      }
+    }
 
-  return res.status(StatusCodes.OK).json({
-    status: StatusCodes.OK,
-    data: {
-      class: updatedClass
-    },
-  });
-  } catch (err) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      status: StatusCodes.BAD_REQUEST,
-      error: {
-        code: "bad_request",
-        message: err.message,
+    const updatedClass = await foundClass.save();
+
+    //Update grades in grade model
+    //if gradeCompositions null --> add, gradeComposition not in gradeCompositions --> delete
+    const existingGrades = await Grade.find({ classCode });
+    console.log("existingGrades", existingGrades)
+    console.log("foundClass", foundClass)
+
+    existingGrades.forEach(async (grade) => {
+      const { grades } = grade;
+      console.log(`Grades: ${JSON.stringify(grades)}`);
+
+      var updatedGrade = [];
+      console.log("foundClass.gradeCompositions", foundClass.gradeCompositions)
+
+      for (const gradeComp of foundClass.gradeCompositions) {
+        console.log('gradeComp', gradeComp);
+
+        const gradeCompId = gradeComp.id.toString();
+
+        grades.forEach((g) => {
+          console.log('*********g', g);
+          console.log('*********gradeCompId', gradeCompId);
+
+          if (g.gradeCompositionId.toString() === gradeCompId) { //push existing gradeComp
+            updatedGrade.push(g)
+          }    
+        })
+
+        //add new 
+        if (!updatedGrade.includes(gradeCompId)) {
+          updatedGrade.push({
+            gradeCompositionId: gradeCompId,
+            grade: 0
+          })
+        }
+
+        console.log('*********updatedGrade', updatedGrade);
+        console.log("updatedClass", updatedClass)
+
+        const findGrade = await Grade.findOneAndUpdate(
+          { $and: [{ classCode: classCode }, { 'student.studentId': grade.student.studentId }] },
+          { $set: { grades: updatedGrade } },
+          { new: true }
+        );
+        console.log('*********findGrade', findGrade);
+      }
+
+      // grades.forEach((g) => {
+      //   const { gradeCompositionId } = g;
+      //   console.log('gradeCompositionId', gradeCompositionId);
+
+      //   for (const gradeCompBody of gradeCompositions) {
+      //     //remove
+
+      //     //create new
+      //     if (gradeCompBody.id == null) {
+            
+      //     } else {
+      //       if (gradeCompositionId !== gradeCompBody.id.toString()) {
+      //         console.log('gradeCompBody.id', gradeCompBody.id);
+      //         console.log('gradeCompositionId', gradeCompositionId.toString());
+  
+      //         const updatedGradesArray = grades.filter(gradeItem => 
+      //           gradeItem.gradeCompositionId !== gradeCompBody.id.toString()
+      //         );
+      //         console.log('grades', grades);
+      //         console.log('updatedGradesArray', updatedGradesArray);
+      //       }
+      //     }
+
+         
+      //   }
+
+      // })
+    });
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: {
+        class: updatedClass
       },
     });
-  }
+    } catch (err) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        error: {
+          code: "bad_request",
+          message: err.message,
+        },
+      });
+    }
 };
 
 // Get gradeCompositions by classCode
@@ -505,6 +597,7 @@ const getGradeCompositionByClassCode = async (req, res) => {
     const { classCode } = req.params;
 
     const foundClass = await Class.findOne({ classCode });
+
 
     if (!foundClass) {
       return res.status(StatusCodes.NOT_FOUND).json({
