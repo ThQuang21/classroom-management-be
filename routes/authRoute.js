@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
     register, login, activateAccount, resentCode, forgotPassword, 
-    resetPassword
+    resetPassword, updateStudentId
 } = require('../controllers/auth');
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
@@ -19,6 +19,7 @@ router.post('/activate/resent-code', resentCode);
 
 router.patch('/forgot-password', forgotPassword);
 router.patch('/reset-password', resetPassword);
+router.patch('/student-id', updateStudentId);
 
 // Google login 
 require("../controllers/googleAuth")

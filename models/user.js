@@ -7,8 +7,7 @@ const userSchema = new mongoose.Schema(
         required: true
       },
       studentId: {
-        type: String,
-        unique: true
+        type: String
       },
       email: {
         type: String,

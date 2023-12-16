@@ -327,7 +327,40 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const updateStudentId = async (req, res) => {
+  try {
+    //find user by email
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (!existingUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "invalid_email",
+          message: "User doesn't exist",
+        },
+      });
+    }
+
+    existingUser.studentId = req.body.studentId;
+    await existingUser.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      message: "Update student ID successfully"
+    });  
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   register, login, activateAccount, resentCode,
-  forgotPassword, resetPassword
+  forgotPassword, resetPassword, updateStudentId
 };
