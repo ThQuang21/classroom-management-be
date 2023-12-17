@@ -628,6 +628,67 @@ const getGradeCompositionByClassCode = async (req, res) => {
   }
 };
 
+// Get finalize in gradeComposition by classCode
+const updateFinalizeInGradeComposition = async (req, res) => {
+  try {
+    const { gradeCompositionId } = req.body;
+    const { classCode } = req.params;
+
+    // Find the class by classCode
+    const foundClass = await Class.findOne({ classCode });
+
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'Class not found',
+        },
+      });
+    }
+
+    // console.log(foundClass)
+    console.log(gradeCompositionId)
+    // Find the index of the gradeComposition in the gradeCompositions array
+    const gradeCompositionIndex = foundClass.gradeCompositions.findIndex(
+      (composition) => composition.id === gradeCompositionId
+    );
+   
+
+    if (gradeCompositionIndex === -1) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'GradeComposition not found',
+        },
+      });
+    }
+
+    // Update the 'finalized' field to true
+    foundClass.gradeCompositions[gradeCompositionIndex].finalized = true;
+
+    // Save the updated class document
+    await foundClass.save();
+    const gradeCompositions = foundClass.gradeCompositions;
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: {
+        gradeCompositions
+      },
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
@@ -639,5 +700,6 @@ module.exports = {
   getPeopleByClassCode,
   inviteByEmail,
   updateGradeCompositionByClassCode,
-  getGradeCompositionByClassCode
+  getGradeCompositionByClassCode,
+  updateFinalizeInGradeComposition
 };

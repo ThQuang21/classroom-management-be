@@ -11,7 +11,8 @@ const {
     getPeopleByClassCode,
     inviteByEmail,
     updateGradeCompositionByClassCode,
-    getGradeCompositionByClassCode
+    getGradeCompositionByClassCode,
+    updateFinalizeInGradeComposition
 } = require('../controllers/class');
 
 router.post('/', createClass);
@@ -31,5 +32,7 @@ router.get('/get-people/:classCode', getPeopleByClassCode);
 //Grade
 router.get('/:classCode/gradeCompositions', getGradeCompositionByClassCode)
 router.put('/:classCode/gradeCompositions', updateGradeCompositionByClassCode)
+router.put('/updateFinalized/:classCode', updateFinalizeInGradeComposition)
+
 
 module.exports = router;
