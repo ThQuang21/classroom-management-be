@@ -26,6 +26,15 @@ async function createGrades(req, res) {
     for (const student of students) {
       const { studentId, fullName, email } = student;
 
+      // Check if a grade already exists for the given classCode and studentId
+      const existingGrade = await Grade.findOne({ classCode, 'student.studentId': studentId });
+
+      if (existingGrade) {
+        // Skip inserting a new grade if one already exists
+        console.log(`Grade already exists for student with ID ${studentId} in class ${classCode}`);
+        continue;
+      }
+
       // Validate if the student data contains the required fields
       if (!studentId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -157,9 +166,33 @@ async function getGradesByClassCode(req, res) {
   }
 }
 
+async function getGradesByGradeComposition(req, res) {
+  try {
+    const { gradeComposition } = req.params;
 
+    // Find grades based on the provided classCode
+    const grades = await Grade.find(
+      { 'grades.gradeCompositionId': gradeComposition },
+      { 'student': 1, 'grades.$': 1 } // Projection to include 'student' and the matching 'grades' array element
+    );
+    
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: grades,
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
 
 module.exports = { 
   createGrades,
-  getGradesByClassCode
+  getGradesByClassCode,
+  getGradesByGradeComposition
 };
