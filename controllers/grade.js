@@ -70,7 +70,7 @@ async function createGrades(req, res) {
 
       // Find the grade composition by classCode
       const foundClass = await Class.Class.findOne({ classCode });
-      console.log(foundClass)
+      console.log('foundClass', foundClass)
        if (foundClass) {
         grade.grades = foundClass.gradeCompositions.map((structure) => ({
           gradeCompositionId: structure.id,
@@ -149,7 +149,7 @@ async function getGradesByClassCode(req, res) {
     // Convert the map values to an array
     const studentsDataArray = Array.from(studentGradesMap.values());
 
-    console.log(studentsDataArray)
+    // console.log(studentsDataArray)
 
     return res.status(StatusCodes.OK).json({
       status: StatusCodes.OK,
@@ -191,8 +191,128 @@ async function getGradesByGradeComposition(req, res) {
   }
 }
 
+async function updateGradeByClassCodeAndStudentId(req, res) {
+  try {
+    const { classCode } = req.params;
+    const gradesToUpdate = req.body.gradesToUpdate; 
+
+    for (const gradeToUpdate of gradesToUpdate) {
+      const { fullName, studentId, id, ...gradeDetails } = gradeToUpdate;
+
+      // Find the student's grades by classCode and fullName
+      const foundGrade = await Grade.findOne({ classCode, $or: [{ 'student.studentId': studentId }, { 'student.fullName': fullName }] });
+
+      if (!foundGrade) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          status: StatusCodes.NOT_FOUND,
+          error: {
+            code: 'not_found',
+            message: `Student ${fullName} not found or has no existing grades.`,
+          },
+        });
+      }
+      foundGrade.student.studentId = studentId;
+      foundGrade.student.fullName = fullName;
+
+      // console.log(gradeDetails)
+
+      const foundClass = await Class.Class.findOne({ classCode });
+      for (const [gradeCompositionName, gradeValue] of Object.entries(gradeDetails)) {
+        console.log(gradeCompositionName)
+        console.log(gradeValue)
+
+        // Find the gradeComposition by name
+        const foundGradeComposition = foundClass.gradeCompositions.find(
+          (composition) => composition.name === gradeCompositionName
+        );
+
+        if (!foundGradeComposition) {
+          return res.status(StatusCodes.NOT_FOUND).json({
+            status: StatusCodes.NOT_FOUND,
+            error: {
+              code: 'not_found',
+              message: `GradeComposition ${gradeCompositionName} not found.`,
+            },
+          });
+        }
+
+        const gradeIndex = foundGrade.grades.findIndex(
+          (grade) => String(grade.gradeCompositionId) === String(foundGradeComposition.id)
+        );
+
+        console.log("*******", gradeIndex)
+        if (gradeIndex !== -1) {
+          // Update the grade value
+          console.log("*******", gradeValue)
+          foundGrade.grades[gradeIndex].grade = Number(gradeValue);
+  
+          // Save the updated grade document
+          await foundGrade.save();
+        }
+      }
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      message: 'Grades updated successfully.',
+    });
+
+        // // Find grades based on the provided classCode
+        // const grades = await Grade.find({ classCode : classCode });
+        // const foundClass = await Class.Class.findOne({ classCode });
+        // const studentGradesMap = new Map();
+    
+        // grades.forEach((grade) => {
+        //   const { studentId, fullName } = grade.student;
+    
+        //   if (!studentGradesMap.has(studentId)) {
+        //     studentGradesMap.set(studentId, {
+        //       fullName,
+        //       studentId
+        //     });
+        //   }
+    
+        //   const studentData = studentGradesMap.get(studentId);
+          
+        //   console.log('grade', grade);
+    
+        //   for (let i = 0; i < grade.grades.length; i++) {
+        //     const gradeCompositionId = grade.grades[i].gradeCompositionId;
+    
+        //     const gradeComposition = foundClass.gradeCompositions.find(
+        //       (composition) => composition.id.toString() === gradeCompositionId.toString()
+        //     );
+    
+        //     // Add the grade to the student data
+        //     studentData[gradeComposition.name] = grade.grades[i].grade;
+        //   }
+    
+        // });
+    
+        // // Convert the map values to an array
+        // const studentsDataArray = Array.from(studentGradesMap.values());
+    
+        // // console.log(studentsDataArray)
+    
+        // return res.status(StatusCodes.OK).json({
+        //   status: StatusCodes.OK,
+        //   data: studentsDataArray,
+        // });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   createGrades,
   getGradesByClassCode,
-  getGradesByGradeComposition
+  getGradesByGradeComposition,
+  updateGradeByClassCodeAndStudentId
 };

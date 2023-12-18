@@ -3,12 +3,14 @@ const router = express.Router();
 const { 
   createGrades,
   getGradesByClassCode,
-  getGradesByGradeComposition
+  getGradesByGradeComposition,
+  updateGradeByClassCodeAndStudentId
 } = require('../controllers/grade');
 
 router.post('/createManyByImport', createGrades);
 router.get('/:classCode', getGradesByClassCode);
 router.get('/grade-composition/:gradeComposition', getGradesByGradeComposition);
+router.put('/updateGrades/:classCode', updateGradeByClassCodeAndStudentId);
 
 
 module.exports = router;
