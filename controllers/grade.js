@@ -203,12 +203,59 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
       const foundGrade = await Grade.findOne({ classCode, $or: [{ 'student.studentId': studentId }, { 'student.fullName': fullName }] });
 
       if (!foundGrade) {
-        return res.status(StatusCodes.NOT_FOUND).json({
-          status: StatusCodes.NOT_FOUND,
-          error: {
-            code: 'not_found',
-            message: `Student ${fullName} not found or has no existing grades.`,
+        // Create an array to store grades for each student
+        const gradesArray = [];
+
+        // Validate if the student data contains the required fields
+        if (!studentId) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            status: StatusCodes.BAD_REQUEST,
+            error: {
+              code: 'bad_request',
+              message: 'Invalid student data. Please provide studentId and fullName for each student.',
+            },
+          });
+        }
+
+        const studentData = {
+          studentId,
+          fullName
+        }
+
+        // Find the user by studentId
+        const user = await User.findOne({ studentId });
+        if (user) {
+          studentData.push(user.email)
+        }
+
+        // Create a grade object for the student
+        const grade = {
+          student: {
+            studentId,
+            fullName
           },
+          classCode,
+          grades: [], // You can add grades data later as needed
+        };
+
+        // Find the grade composition by classCode
+        const foundClass = await Class.Class.findOne({ classCode });
+        console.log('foundClass', foundClass)
+        if (foundClass) {
+          grade.grades = foundClass.gradeCompositions.map((structure) => ({
+            gradeCompositionId: structure.id,
+            grade: 0, // You can set the default grade value
+          }));
+    
+          gradesArray.push(grade);
+        }
+
+        // Create grades in the database
+        const createdGrades = await Grade.insertMany(gradesArray);
+
+        return res.status(StatusCodes.CREATED).json({
+          status: StatusCodes.CREATED,
+          data: createdGrades,
         });
       }
       foundGrade.student.studentId = studentId;
@@ -220,6 +267,24 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
       for (const [gradeCompositionName, gradeValue] of Object.entries(gradeDetails)) {
         console.log(gradeCompositionName)
         console.log(gradeValue)
+
+        if (isNaN(gradeValue)) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            status: StatusCodes.BAD_REQUEST,
+            error: {
+              code: 'bad_request',
+              message: `Invalid grade value for ${gradeCompositionName}. Grade value must be a number.`,
+            },
+          });
+        } else if (gradeValue < 0 || gradeValue > 10) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            status: StatusCodes.BAD_REQUEST,
+            error: {
+              code: 'bad_request',
+              message: `Invalid grade value for ${gradeCompositionName}. Grade value must be between 0 and 10.`,
+            },
+          });
+        }
 
         // Find the gradeComposition by name
         const foundGradeComposition = foundClass.gradeCompositions.find(
