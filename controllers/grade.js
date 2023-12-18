@@ -200,7 +200,19 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
       const { fullName, studentId, id, ...gradeDetails } = gradeToUpdate;
 
       // Find the student's grades by classCode and fullName
-      const foundGrade = await Grade.findOne({ classCode, $or: [{ 'student.studentId': studentId }, { 'student.fullName': fullName }] });
+      const query = { classCode };
+      if (studentId) {
+        query['student.studentId'] = studentId;
+      }
+      if (fullName) {
+        query['student.fullName'] = fullName;
+      }
+      
+      const foundGrade = await Grade.findOne(query);
+      console.log('foundGrade', foundGrade)
+      console.log('studentId', studentId)
+      console.log('fullName', fullName)
+    
 
       if (!foundGrade) {
         // Create an array to store grades for each student
@@ -258,15 +270,21 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
           data: createdGrades,
         });
       }
-      foundGrade.student.studentId = studentId;
-      foundGrade.student.fullName = fullName;
 
-      // console.log(gradeDetails)
+      if (studentId) {
+        foundGrade.student.studentId = studentId;
+      }
+
+      if (fullName) {
+        foundGrade.student.fullName = fullName;
+      }
+
+      console.log(foundGrade)
 
       const foundClass = await Class.Class.findOne({ classCode });
       for (const [gradeCompositionName, gradeValue] of Object.entries(gradeDetails)) {
-        console.log(gradeCompositionName)
-        console.log(gradeValue)
+        // console.log(gradeCompositionName)
+        // console.log(gradeValue)
 
         if (isNaN(gradeValue)) {
           return res.status(StatusCodes.BAD_REQUEST).json({
@@ -305,10 +323,10 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
           (grade) => String(grade.gradeCompositionId) === String(foundGradeComposition.id)
         );
 
-        console.log("*******", gradeIndex)
+        // console.log("*******", gradeIndex)
         if (gradeIndex !== -1) {
           // Update the grade value
-          console.log("*******", gradeValue)
+          // console.log("*******", gradeValue)
           foundGrade.grades[gradeIndex].grade = Number(gradeValue);
   
           // Save the updated grade document
