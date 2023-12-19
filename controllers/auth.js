@@ -123,6 +123,7 @@ const login = async (req, res) => {
         id: existingUser.id,
         name: existingUser.name,
         email: existingUser.email,
+        studentId: existingUser.studentId,
         status: existingUser.status,
         accessToken: token,
         socialLogins: existingUser.socialLogins
@@ -360,17 +361,25 @@ const updateStudentId = async (req, res) => {
   }
 }
 
-const updateName = async (req, res) => {
+const updateProfile = async (req, res) => {
   try { 
     console.log(req.body)
-    const userUpdate = await User.findOneAndUpdate({email: req.body.email}, {name: req.body.name})
+    const userUpdate = await User.findOne({email: req.body.email})
+
+    userUpdate.name = req.body.name;
+    userUpdate.studentId = req.body.studentId;
+
+    userUpdate.save();
 
     return res.status(StatusCodes.OK).json({
       status: 200,
       data: {
-        name: userUpdate.name,
-        email: userUpdate.email,
         id: userUpdate.id,
+        name: userUpdate.name,
+        studentId: userUpdate.studentId,
+        email: userUpdate.email,
+        status: userUpdate.status,
+        socialLogins: userUpdate.socialLogins
       },
     });
 
@@ -387,5 +396,5 @@ const updateName = async (req, res) => {
 
 module.exports = { 
   register, login, activateAccount, resentCode,
-  forgotPassword, resetPassword, updateStudentId, updateName
+  forgotPassword, resetPassword, updateStudentId, updateProfile
 };

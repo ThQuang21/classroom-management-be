@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
     register, login, activateAccount, resentCode, forgotPassword, 
-    resetPassword, updateStudentId, updateName
+    resetPassword, updateStudentId, updateProfile
 } = require('../controllers/auth');
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
@@ -14,14 +14,13 @@ const CLIENT_URL = "https://classroom-management-fe.vercel.app"
 router.post('/register', register);
 router.post('/login', login);
 
-router.post('/profile', updateName)
-
 router.get('/activate/:email/:userToken', activateAccount);
 router.post('/activate/resent-code', resentCode);
 
 router.patch('/forgot-password', forgotPassword);
 router.patch('/reset-password', resetPassword);
 router.patch('/student-id', updateStudentId);
+router.patch('/profile', updateProfile)
 
 // Google login 
 require("../controllers/googleAuth")
@@ -86,6 +85,7 @@ router.get('/google/callback', passport.authenticate('google', {
         id: existingUser.id,
         name: existingUser.name,
         email: existingUser.email,
+        studentId: existingUser.studentId,
         status: 'ACTIVE',
         accessToken: token,
         socialLogins: [
