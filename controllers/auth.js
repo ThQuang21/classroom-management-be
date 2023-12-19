@@ -125,6 +125,7 @@ const login = async (req, res) => {
         email: existingUser.email,
         status: existingUser.status,
         accessToken: token,
+        socialLogins: existingUser.socialLogins
       },
     });
 

@@ -191,6 +191,62 @@ async function getGradesByGradeComposition(req, res) {
   }
 }
 
+async function getGradeByClassCodeAndStudentId(req, res) {
+  try {
+    const { classCode, studentId } = req.params;
+
+    // Validate if both classCode and studentId are provided
+    if (!classCode || !studentId) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        error: {
+          code: 'bad_request',
+          message: 'Please provide valid classCode and studentId.',
+        },
+      });
+    }
+
+    // Find the grade based on the provided classCode and studentId
+    const grade = await Grade.findOne({ classCode, 'student.studentId': studentId });
+
+    if (!grade) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'Grade not found for the given classCode and studentId.',
+        },
+      });
+    }
+
+    console.log(grade)
+    const studentData = {
+      fullName: grade.student.fullName,
+      studentId: grade.student.studentId,
+    };
+
+    for (let i = 0; i < grade.grades.length; i++) {
+      const gradeCompositionId = grade.grades[i].gradeCompositionId;
+
+      // Add the grade to the student data
+      studentData[gradeCompositionId] = grade.grades[i].grade;
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: studentData,
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
+
 async function updateGradeByClassCodeAndStudentId(req, res) {
   try {
     const { classCode } = req.params;
@@ -397,5 +453,6 @@ module.exports = {
   createGrades,
   getGradesByClassCode,
   getGradesByGradeComposition,
-  updateGradeByClassCodeAndStudentId
+  updateGradeByClassCodeAndStudentId,
+  getGradeByClassCodeAndStudentId
 };
