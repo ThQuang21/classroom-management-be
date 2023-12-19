@@ -88,6 +88,12 @@ router.get('/google/callback', passport.authenticate('google', {
         email: existingUser.email,
         status: 'ACTIVE',
         accessToken: token,
+        socialLogins: [
+          {
+            provider: 'GOOGLE', 
+            socialId: req.user.id,
+          },
+        ],
       });
       
       console.log("userData", userData)
