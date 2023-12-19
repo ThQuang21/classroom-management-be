@@ -6,6 +6,7 @@ const {RegisterSchema} = require('../validators/registerSchema');
 const {LoginSchema} = require('../validators/loginSchema');
 const { sendActivateEmail } = require('../utils/sendEmailActive');
 const { sendEmailResetPwd } = require('../utils/sendEmailResetPwd');
+const { Class } = require('../models/class');
 require("dotenv").config();
 
 function generateOTP() { 
@@ -370,6 +371,20 @@ const updateProfile = async (req, res) => {
     userUpdate.studentId = req.body.studentId;
 
     userUpdate.save();
+
+    // Update the class owner name in the class schema
+    const classUpdate = await Class.findOne({ 'classOwner.id': userUpdate.id });
+    console.log(classUpdate)
+    if (classUpdate) {
+      // Update the classOwner name
+      classUpdate.classOwner.name = req.body.name;
+      await classUpdate.save();
+    }
+
+    const classUpdateTeachers = await Class.updateMany(
+      { 'teachers.id': userUpdate.id },
+      { $set: { 'teachers.$.name': req.body.name } }
+    );
 
     return res.status(StatusCodes.OK).json({
       status: 200,
