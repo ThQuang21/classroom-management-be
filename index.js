@@ -8,6 +8,7 @@ const passport = require('passport')
 const authRoutes = require('./routes/authRoute');
 const classRoutes = require('./routes/classRoute');
 const gradeRoutes = require('./routes/gradeRoute');
+const gradeReviews = require('./routes/gradeReviewRoute');
 
 require("dotenv").config();
 require("./utils/connectDB")
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes); // Authentication routes
 app.use('/classes', classRoutes); // Class routes
 app.use('/grades', gradeRoutes); // Grade routes
+app.use('/gradeReviews', gradeReviews); // Grade review routes
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
