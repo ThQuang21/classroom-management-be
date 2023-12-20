@@ -74,7 +74,7 @@ async function createGrades(req, res) {
        if (foundClass) {
         grade.grades = foundClass.gradeCompositions.map((structure) => ({
           gradeCompositionId: structure.id,
-          grade: 0, // You can set the default grade value
+          grade: -1, // You can set the default grade value
         }));
   
         gradesArray.push(grade);
@@ -214,7 +214,7 @@ async function getGradeByClassCodeAndStudentId(req, res) {
         status: StatusCodes.NOT_FOUND,
         error: {
           code: 'not_found',
-          message: 'Grade not found for the given classCode and studentId.',
+          message: 'Grade not found with your student ID.',
         },
       });
     }

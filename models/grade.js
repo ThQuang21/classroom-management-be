@@ -27,7 +27,7 @@ const gradeSchema = new mongoose.Schema({
       grade: {
         type: Number,
         required: true,
-        default: 0
+        default: -1
       },
     },
   ]
