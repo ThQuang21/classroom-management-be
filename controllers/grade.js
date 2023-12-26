@@ -54,7 +54,7 @@ async function createGrades(req, res) {
        // Find the user by studentId
        const user = await User.findOne({ studentId });
        if (user) {
-        studentData.push(user.email)
+        studentData.email = user.email;
        }
 
       // Create a grade object for the student

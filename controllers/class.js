@@ -490,7 +490,7 @@ const updateGradeCompositionByClassCode = async (req, res) => {
     for (const gradeComposition of foundClass.gradeCompositions) {
       if (!gradeComposition.id) {
         const id = new ObjectId();
-        console.log("************", id);
+        // console.log("************", id);
         gradeComposition._id = id;
         gradeComposition.id = id.toString();
         foundClass.gradeCompositions.id = id.toString();
@@ -502,18 +502,18 @@ const updateGradeCompositionByClassCode = async (req, res) => {
     //Update grades in grade model
     //if gradeCompositions null --> add, gradeComposition not in gradeCompositions --> delete
     const existingGrades = await Grade.find({ classCode });
-    console.log("existingGrades", existingGrades)
-    console.log("foundClass", foundClass)
+    // console.log("existingGrades", existingGrades)
+    // console.log("foundClass", foundClass)
 
     existingGrades.forEach(async (grade) => {
       const { grades } = grade;
       console.log(`Grades: ${JSON.stringify(grades)}`);
 
       var updatedGrade = [];
-      console.log("foundClass.gradeCompositions", foundClass.gradeCompositions)
+      // console.log("foundClass.gradeCompositions", foundClass.gradeCompositions)
 
       for (const gradeComp of foundClass.gradeCompositions) {
-        console.log('gradeComp', gradeComp);
+        // console.log('gradeComp', gradeComp);
 
         const gradeCompId = gradeComp.id.toString();
 
@@ -525,24 +525,27 @@ const updateGradeCompositionByClassCode = async (req, res) => {
             updatedGrade.push(g)
           }    
         })
+        // console.log('*********updatedGrade', updatedGrade);
 
         //add new 
-        if (!updatedGrade.includes(gradeCompId)) {
-          updatedGrade.push({
-            gradeCompositionId: gradeCompId,
-            grade: 0
-          })
+        for (const entry of updatedGrade) {
+          if (entry.gradeCompositionId.toString() !== gradeCompId) {
+            updatedGrade.push({
+              gradeCompositionId: gradeCompId,
+              grade: 0
+            });
+          }
         }
 
         console.log('*********updatedGrade', updatedGrade);
-        console.log("updatedClass", updatedClass)
+        // console.log("updatedClass", updatedClass)
 
         const findGrade = await Grade.findOneAndUpdate(
           { $and: [{ classCode: classCode }, { 'student.studentId': grade.student.studentId }] },
           { $set: { grades: updatedGrade } },
           { new: true }
         );
-        console.log('*********findGrade', findGrade);
+        // console.log('*********findGrade', findGrade);
       }
 
       // grades.forEach((g) => {
