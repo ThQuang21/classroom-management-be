@@ -510,43 +510,27 @@ const updateGradeCompositionByClassCode = async (req, res) => {
       console.log(`Grades: ${JSON.stringify(grades)}`);
 
       var updatedGrade = [];
-      // console.log("foundClass.gradeCompositions", foundClass.gradeCompositions)
 
       for (const gradeComp of foundClass.gradeCompositions) {
-        // console.log('gradeComp', gradeComp);
-
         const gradeCompId = gradeComp.id.toString();
+        const matchingGrade = grades.find(g => g.gradeCompositionId.toString() === gradeCompId);
 
-        grades.forEach((g) => {
-          console.log('*********g', g);
-          console.log('*********gradeCompId', gradeCompId);
-
-          if (g.gradeCompositionId.toString() === gradeCompId) { //push existing gradeComp
-            updatedGrade.push(g)
-          }    
-        })
-        // console.log('*********updatedGrade', updatedGrade);
-
-        //add new 
-        for (const entry of updatedGrade) {
-          if (entry.gradeCompositionId.toString() !== gradeCompId) {
-            updatedGrade.push({
-              gradeCompositionId: gradeCompId,
-              grade: 0
-            });
-          }
+        if (matchingGrade) {
+          updatedGrade.push(matchingGrade);
+        } else {
+          updatedGrade.push({
+            gradeCompositionId: gradeCompId,
+            grade: 0
+          });
         }
-
-        console.log('*********updatedGrade', updatedGrade);
-        // console.log("updatedClass", updatedClass)
-
-        const findGrade = await Grade.findOneAndUpdate(
-          { $and: [{ classCode: classCode }, { 'student.studentId': grade.student.studentId }] },
-          { $set: { grades: updatedGrade } },
-          { new: true }
-        );
-        // console.log('*********findGrade', findGrade);
       }
+
+
+      const findGrade = await Grade.findOneAndUpdate(
+        { $and: [{ classCode: classCode }, { 'student.studentId': grade.student.studentId }] },
+        { $set: { grades: updatedGrade } },
+        { new: true }
+      );
 
       // grades.forEach((g) => {
       //   const { gradeCompositionId } = g;
