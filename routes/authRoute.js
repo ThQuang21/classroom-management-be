@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    register, login, activateAccount, resentCode, forgotPassword, 
+    register, login, activateAccount, resentCode, forgotPassword, findUserByEmail,
     resetPassword, updateStudentId, updateProfile
 } = require('../controllers/auth');
 const passport = require("passport");
@@ -21,6 +21,8 @@ router.patch('/forgot-password', forgotPassword);
 router.patch('/reset-password', resetPassword);
 router.patch('/student-id', updateStudentId);
 router.patch('/profile', updateProfile)
+router.get('/find-by-email/:email', findUserByEmail);
+
 
 // Google login 
 require("../controllers/googleAuth")

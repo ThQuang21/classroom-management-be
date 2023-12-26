@@ -409,7 +409,38 @@ const updateProfile = async (req, res) => {
   }
 }
 
+const findUserByEmail = async (req, res) => {
+  try {
+    //find user by email
+    const existingUser = await User.findOne({ email: req.params.email });
+    if (!existingUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "invalid_email",
+          message: "User doesn't exist",
+        },
+      });
+    }
+
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: existingUser
+    });  
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
-  register, login, activateAccount, resentCode,
+  register, login, activateAccount, resentCode, findUserByEmail,
   forgotPassword, resetPassword, updateStudentId, updateProfile
 };

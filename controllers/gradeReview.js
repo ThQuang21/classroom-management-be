@@ -79,7 +79,44 @@ async function getGradeReviewsByClassCodeAndStudentId(req, res) {
   }
 }
 
+async function addCommentByClassCodeStudentIdAndGradeCompositionId(req, res) {
+  try {
+    const { classCode, studentId, gradeCompositionId, commenter, comment } = req.body;
+    const gradeReview = await GradeReview.findOne({
+      classCode: classCode,
+      studentId: studentId,
+      gradeCompositionId: gradeCompositionId,
+    });
+
+    if (!gradeReview) {
+      return res.status(404).json({ error: 'Grade review not found.' });
+    }
+
+    gradeReview.comments.push({
+      commenter: commenter,
+      comment: comment,
+    });
+
+    await gradeReview.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: gradeReview,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   createGradeReviews,
-  getGradeReviewsByClassCodeAndStudentId
+  getGradeReviewsByClassCodeAndStudentId,
+  addCommentByClassCodeStudentIdAndGradeCompositionId
 };

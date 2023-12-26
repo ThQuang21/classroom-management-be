@@ -24,7 +24,7 @@ const gradeReviewSchema = new mongoose.Schema({
   comments: [
     {
       commenter: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.String,
         ref: 'user',
       },
       comment: {
