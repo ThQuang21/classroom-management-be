@@ -9,6 +9,7 @@ async function createGradeReviews(req, res) {
       classCode,
       gradeCompositionId,
       studentId,
+      currentGrade,
       expectationGrade,
       explanation,
     } = req.body;
@@ -17,6 +18,7 @@ async function createGradeReviews(req, res) {
       classCode: req.body.classCode,
       gradeCompositionId: req.body.gradeCompositionId,
       studentId: req.body.studentId,
+      currentGrade: req.body.currentGrade,
       expectationGrade: req.body.expectationGrade,
       explanation: req.body.explanation
     });

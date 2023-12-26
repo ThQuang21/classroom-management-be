@@ -18,6 +18,9 @@ const gradeReviewSchema = new mongoose.Schema({
     type: Number,
     default: -1,
   },
+  currentGrade: {
+    type: Number,
+  },
   explanation: {
     type: String,
   },
