@@ -16,7 +16,7 @@ async function createGradeReviews(req, res) {
     } = req.body;
     // Save the GradeReview to the database
     
-    const existingGradeReview = await GradeReview.find({  
+    const existingGradeReview = await GradeReview.findOne({  
       classCode: req.body.classCode,
       gradeCompositionId: req.body.gradeCompositionId,
       studentId: req.body.studentId
@@ -85,7 +85,7 @@ async function getGradeReviewsByClassCode(req, res) {
       gradeReviewObject.gradeCompositionName = gradeCompositionName;
 
       const studentName = await User.findOne({ _id: gradeReview.studentId });
-      gradeReviewObject.studentName = studentName.name;
+      gradeReviewObject.studentName = studentName.studentId;
 
       // Replace the original GradeReview with the enhanced object
       gradeReviews[gradeReviews.indexOf(gradeReview)] = gradeReviewObject;
@@ -151,6 +151,63 @@ async function getGradeReviewsByClassCodeAndStudentId(req, res) {
   }
 }
 
+async function getGradeReviewsByClassCodeAndStudentIds(req, res) {
+  try {
+    const { classCode, studentIds } = req.body;
+
+    const users = await User.find({ studentId: { $in: studentIds } });
+    const userIds = users.map((user) => user._id);
+
+    const gradeReviews = await GradeReview.find({
+      classCode: classCode,
+      studentId: { $in: userIds },
+    });
+
+    console.log(gradeReviews)
+
+    const foundClass = await Class.findOne({ classCode });
+
+    for (const gradeReview of gradeReviews) {
+
+      const gradeComposition = foundClass.gradeCompositions.find(
+        (composition) => composition.id === gradeReview.gradeCompositionId.toString()
+      );
+      const gradeCompositionName = gradeComposition ? gradeComposition.name : 'Unknown Name';
+
+      for (const comment of gradeReview.comments) {
+        // console.log(comment)
+        const existingUser = await User.findOne({ email: comment.commenter });
+        comment.commenter = existingUser.name
+      }
+
+      // Convert GradeReview to plain JavaScript object and add the gradeCompositionName field
+      const gradeReviewObject = gradeReview.toObject();
+      gradeReviewObject.gradeCompositionName = gradeCompositionName;
+
+      const studentName = await User.findOne({ _id: gradeReview.studentId });
+      gradeReviewObject.studentName = studentName.studentId;
+
+      // Replace the original GradeReview with the enhanced object
+      gradeReviews[gradeReviews.indexOf(gradeReview)] = gradeReviewObject;
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: gradeReviews,
+    });
+   
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
+
 async function addCommentByClassCodeStudentIdAndGradeCompositionId(req, res) {
   try {
     const { classCode, studentId, gradeCompositionId, commenter, comment } = req.body;
@@ -197,5 +254,6 @@ module.exports = {
   createGradeReviews,
   getGradeReviewsByClassCode,
   getGradeReviewsByClassCodeAndStudentId,
+  getGradeReviewsByClassCodeAndStudentIds,
   addCommentByClassCodeStudentIdAndGradeCompositionId
 };
