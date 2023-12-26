@@ -1,6 +1,7 @@
 const GradeReview = require('../models/gradeReview');
 const MyClass = require('../models/class');
 const Class = MyClass.Class;
+const User = require('../models/user');
 const StatusCodes = require('http-status-codes');
 
 async function createGradeReviews(req, res) {
@@ -14,6 +15,23 @@ async function createGradeReviews(req, res) {
       explanation,
     } = req.body;
     // Save the GradeReview to the database
+    
+    const existingGradeReview = await GradeReview.find({  
+      classCode: req.body.classCode,
+      gradeCompositionId: req.body.gradeCompositionId,
+      studentId: req.body.studentId
+    });
+
+    if (existingGradeReview) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'You already request for this grade composition.',
+        },
+      });
+    }
+
     const savedGradeReview = await GradeReview.create({
       classCode: req.body.classCode,
       gradeCompositionId: req.body.gradeCompositionId,
@@ -44,6 +62,51 @@ async function createGradeReviews(req, res) {
   }
 }
 
+async function getGradeReviewsByClassCode(req, res) {
+  try {
+    const { classCode } = req.params;
+    const gradeReviews = await GradeReview.find({ classCode });
+    const foundClass = await Class.findOne({ classCode });
+    for (const gradeReview of gradeReviews) {
+
+      const gradeComposition = foundClass.gradeCompositions.find(
+        (composition) => composition.id === gradeReview.gradeCompositionId.toString()
+      );
+      const gradeCompositionName = gradeComposition ? gradeComposition.name : 'Unknown Name';
+
+      for (const comment of gradeReview.comments) {
+        console.log(comment)
+        const existingUser = await User.findOne({ email: comment.commenter });
+        comment.commenter = existingUser.name
+      }
+
+      // Convert GradeReview to plain JavaScript object and add the gradeCompositionName field
+      const gradeReviewObject = gradeReview.toObject();
+      gradeReviewObject.gradeCompositionName = gradeCompositionName;
+
+      const studentName = await User.findOne({ _id: gradeReview.studentId });
+      gradeReviewObject.studentName = studentName.name;
+
+      // Replace the original GradeReview with the enhanced object
+      gradeReviews[gradeReviews.indexOf(gradeReview)] = gradeReviewObject;
+    }
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: gradeReviews,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
+
 async function getGradeReviewsByClassCodeAndStudentId(req, res) {
   try {
     const { studentId, classCode } = req.params;
@@ -57,9 +120,16 @@ async function getGradeReviewsByClassCodeAndStudentId(req, res) {
       );
       const gradeCompositionName = gradeComposition ? gradeComposition.name : 'Unknown Name';
 
+      for (const comment of gradeReview.comments) {
+        console.log(comment)
+        const existingUser = await User.findOne({ email: comment.commenter });
+        comment.commenter = existingUser.name
+      }
+
       // Convert GradeReview to plain JavaScript object and add the gradeCompositionName field
       const gradeReviewObject = gradeReview.toObject();
       gradeReviewObject.gradeCompositionName = gradeCompositionName;
+
 
       // Replace the original GradeReview with the enhanced object
       gradeReviews[gradeReviews.indexOf(gradeReview)] = gradeReviewObject;
@@ -99,7 +169,13 @@ async function addCommentByClassCodeStudentIdAndGradeCompositionId(req, res) {
       comment: comment,
     });
 
+
     await gradeReview.save();
+
+    for (const comment of gradeReview.comments) {
+      const existingUser = await User.findOne({ email: comment.commenter });
+      comment.commenter = existingUser.name
+    }
 
     return res.status(StatusCodes.OK).json({
       status: StatusCodes.OK,
@@ -119,6 +195,7 @@ async function addCommentByClassCodeStudentIdAndGradeCompositionId(req, res) {
 
 module.exports = { 
   createGradeReviews,
+  getGradeReviewsByClassCode,
   getGradeReviewsByClassCodeAndStudentId,
   addCommentByClassCodeStudentIdAndGradeCompositionId
 };
