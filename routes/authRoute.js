@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
     register, login, activateAccount, resentCode, forgotPassword, findUserByEmail,
-    resetPassword, updateStudentId, updateProfile, getAllUsers
+    resetPassword, updateStudentId, updateProfile, getAllUsers, banUser, activeUser
 } = require('../controllers/auth');
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
@@ -18,6 +18,9 @@ router.post('/login', login);
 
 router.get('/activate/:email/:userToken', activateAccount);
 router.post('/activate/resent-code', resentCode);
+router.put('/banUser/:email', banUser);
+router.put('/activeUser/:email', activeUser);
+
 
 router.patch('/forgot-password', forgotPassword);
 router.patch('/reset-password', resetPassword);

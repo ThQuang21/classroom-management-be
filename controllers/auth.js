@@ -106,6 +106,17 @@ const login = async (req, res) => {
     }
 
     //check status user
+    if (existingUser.status === "BAN") {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "user_ban",
+          message: "User is banned from this platform. Please contact administrator for help.",
+        },
+      });
+    }
+
+    //check status user
     if (existingUser.status === "INACTIVE") {
       return res.status(StatusCodes.UNAUTHORIZED).json({
         status: StatusCodes.UNAUTHORIZED,
@@ -153,6 +164,17 @@ const activateAccount = async (req, res) => {
         error: {
           code: "invalid_user",
           message: "User doesn't exist",
+        },
+      });
+    }
+
+    //check status user
+    if (user.status === "BAN") {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "user_ban",
+          message: "User is banned from this platform. Please contact administrator for help.",
         },
       });
     }
@@ -210,6 +232,17 @@ const resentCode = async (req, res) => {
       });
     }
 
+    //check status user
+    if (existingUser.status === "BAN") {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "user_ban",
+          message: "User is banned from this platform. Please contact administrator for help.",
+        },
+      });
+    }
+
     const sendCode = await sendActivateEmail(existingUser.name, req.body.email, existingUser.userToken);
     if (sendCode.error) {
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -247,6 +280,17 @@ const forgotPassword = async (req, res) => {
         error: {
           code: "invalid_email",
           message: "User doesn't exist",
+        },
+      });
+    }
+
+    //check status user
+    if (existingUser.status === "BAN") {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "user_ban",
+          message: "User is banned from this platform. Please contact administrator for help.",
         },
       });
     }
@@ -291,6 +335,16 @@ const resetPassword = async (req, res) => {
         error: {
           code: "invalid_email",
           message: "User doesn't exist",
+        },
+      });
+    }
+    //check status user
+    if (existingUser.status === "BAN") {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "user_ban",
+          message: "User is banned from this platform. Please contact administrator for help.",
         },
       });
     }
@@ -461,8 +515,90 @@ async function getAllUsers(req, res) {
   }
 }
 
+//Ban user
+async function banUser(req, res) {
+  try {
+    const { email } = req.params;
+
+    // Find the user by user ID
+    const foundUser = await User.findOne({email : email});
+
+    // Validate that the user exists
+    if (!foundUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'User not found.',
+        },
+      });
+    }
+
+    // Update the user status to "BAN"
+    foundUser.status = 'BAN';
+
+    // Save the updated user
+    const updatedUser = await foundUser.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: updatedUser,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: {
+        code: 'internal_server_error',
+        message: err.message,
+      },
+    });
+  }
+}
+
+//Active user
+async function activeUser(req, res) {
+  try {
+    const { email } = req.params;
+
+    // Find the user by user ID
+    const foundUser = await User.findOne({email : email});
+
+    // Validate that the user exists
+    if (!foundUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'User not found.',
+        },
+      });
+    }
+
+    // Update the user status to "BAN"
+    foundUser.status = 'ACTIVE';
+
+    // Save the updated user
+    const updatedUser = await foundUser.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: updatedUser,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: {
+        code: 'internal_server_error',
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   register, login, activateAccount, resentCode, findUserByEmail,
   forgotPassword, resetPassword, updateStudentId, updateProfile,
-  getAllUsers
+  getAllUsers, banUser, activeUser
 };
