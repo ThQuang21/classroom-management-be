@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
     register, login, activateAccount, resentCode, forgotPassword, findUserByEmail,
-    resetPassword, updateStudentId, updateProfile
+    resetPassword, updateStudentId, updateProfile, getAllUsers
 } = require('../controllers/auth');
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
@@ -10,6 +10,8 @@ const User = require('../models/user');
 
 const CLIENT_URL = "https://classroom-management-fe.vercel.app"
 // const CLIENT_URL = "http://localhost:3001/"
+
+router.get('/getAllUsers', getAllUsers);
 
 router.post('/register', register);
 router.post('/login', login);

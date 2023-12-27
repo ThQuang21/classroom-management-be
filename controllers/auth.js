@@ -440,7 +440,29 @@ const findUserByEmail = async (req, res) => {
   }
 }
 
+async function getAllUsers(req, res) {
+  try {
+    // Find all users with the role "user"
+    const users = await User.find({ role: 'user' });
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: users,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: {
+        code: 'internal_server_error',
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   register, login, activateAccount, resentCode, findUserByEmail,
-  forgotPassword, resetPassword, updateStudentId, updateProfile
+  forgotPassword, resetPassword, updateStudentId, updateProfile,
+  getAllUsers
 };
