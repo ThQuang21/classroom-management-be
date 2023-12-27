@@ -153,6 +153,68 @@ const login = async (req, res) => {
   }
 }
 
+// Log in user
+const loginAdmin = async (req, res) => {
+  try {
+
+    //find user by name
+    const existingUser = await User.findOne({ name: req.body.name });
+    if (!existingUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: "invalid_name",
+          message: "User doesn't exist",
+        },
+      });
+    }
+
+    //check if pwd is correct
+    const isValidPassword = await bcrypt.compare(req.body.password, existingUser.password);
+    if (!isValidPassword) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "invalid_credential",
+          message: "Invalid credentials",
+        },
+      });
+    }
+
+    console.log(existingUser)
+
+    //check status user
+    if (existingUser.role !== "admin") {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        status: StatusCodes.UNAUTHORIZED,
+        error: {
+          code: "user_inactive",
+          message: "User is not valid",
+        },
+      });
+    }
+
+    //create token for valid user
+    return res.status(StatusCodes.OK).json({
+      status: 200,
+      data: {
+        id: existingUser.id,
+        name: existingUser.name,
+        role: existingUser.role
+      },
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+}
+
 //Activate user
 const activateAccount = async (req, res) => {
   try {
@@ -600,5 +662,5 @@ async function activeUser(req, res) {
 module.exports = { 
   register, login, activateAccount, resentCode, findUserByEmail,
   forgotPassword, resetPassword, updateStudentId, updateProfile,
-  getAllUsers, banUser, activeUser
+  getAllUsers, banUser, activeUser, loginAdmin
 };
