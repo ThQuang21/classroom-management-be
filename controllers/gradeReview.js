@@ -2,6 +2,7 @@ const GradeReview = require('../models/gradeReview');
 const MyClass = require('../models/class');
 const Class = MyClass.Class;
 const User = require('../models/user');
+const Grade = require('../models/grade');
 const StatusCodes = require('http-status-codes');
 
 async function createGradeReviews(req, res) {
@@ -84,6 +85,13 @@ async function getGradeReviewsByClassCode(req, res) {
       const gradeReviewObject = gradeReview.toObject();
       gradeReviewObject.gradeCompositionName = gradeCompositionName;
 
+      //add name marked
+      if (gradeReview.finalDecision.markedBy) {
+        const markedName = await User.findOne({ _id: gradeReview.finalDecision.markedBy });
+        gradeReviewObject.finalDecision.markedName = markedName.name;
+      }
+
+      //add name student
       const studentName = await User.findOne({ _id: gradeReview.studentId });
       gradeReviewObject.studentName = studentName.studentId;
 
@@ -250,10 +258,71 @@ async function addCommentByClassCodeStudentIdAndGradeCompositionId(req, res) {
   }
 }
 
+async function updateFinalDecision(req, res) {
+  try {
+    const { classCode, gradeCompositionId, studentId, studentName, grade, markedBy } = req.body;
+
+    // Find the grade review based on classCode, gradeCompositionId, and studentId
+    const gradeReview = await GradeReview.findOne({
+      classCode: classCode,
+      gradeCompositionId: gradeCompositionId,
+      studentId: studentId,
+    });
+
+    if (!gradeReview) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'Grade review not found.',
+        },
+      });
+    }
+
+    // Update the finalDecision fields
+    gradeReview.finalDecision.grade = grade;
+    gradeReview.finalDecision.markedBy = markedBy;
+
+    // Save the updated grade review
+    await gradeReview.save();
+
+    //Update grade
+    const query = { classCode };
+    query['student.studentId'] = studentName;
+    query['grades.gradeCompositionId'] = gradeCompositionId;
+    const foundGrade = await Grade.findOne(query);
+    console.log(foundGrade)
+    foundGrade.grades.grade = grade;
+
+    const gradeIndexToUpdate = foundGrade.grades.findIndex(
+      (grade) => grade.gradeCompositionId.equals(gradeCompositionId)
+    );
+    if (gradeIndexToUpdate !== -1) {
+      foundGrade.grades[gradeIndexToUpdate].grade = grade;
+    }
+  
+    await foundGrade.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: gradeReview,
+    });
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: 'bad_request',
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   createGradeReviews,
   getGradeReviewsByClassCode,
   getGradeReviewsByClassCodeAndStudentId,
   getGradeReviewsByClassCodeAndStudentIds,
-  addCommentByClassCodeStudentIdAndGradeCompositionId
+  addCommentByClassCodeStudentIdAndGradeCompositionId,
+  updateFinalDecision
 };
