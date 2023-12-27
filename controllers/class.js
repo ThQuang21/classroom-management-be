@@ -676,7 +676,6 @@ const updateFinalizeInGradeComposition = async (req, res) => {
   }
 };
 
-
 // Get all classes
 const getAllClasses = async (req, res) => {
   try {
@@ -698,6 +697,127 @@ const getAllClasses = async (req, res) => {
   }
 };
 
+// Update className by classCode
+async function updateClassName(req, res) {
+  try {
+    const { classCode } = req.params;
+    const { className } = req.body; 
+
+    if (!className) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        error: {
+          code: 'bad_request',
+          message: 'New class name is required.',
+        },
+      });
+    }
+
+    // Find the class by classCode and update the className
+    const updatedClass = await Class.findOneAndUpdate(
+      { classCode },
+      { $set: { className: className } },
+      { new: true } // Return the modified document
+    );
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: updatedClass,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: {
+        code: 'internal_server_error',
+        message: err.message,
+      },
+    });
+  }
+}
+
+//Remove teacher 
+async function removeTeacher(req, res) {
+  try {
+    const { classCode, teacherId } = req.params;
+
+    // Find the class by classCode
+    const foundClass = await Class.findOne({ classCode });
+
+    // Validate that the class exists
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'Class not found.',
+        },
+      });
+    }
+
+    // Remove the teacher by their ID from the teachers array
+    foundClass.teachers = foundClass.teachers.filter((teacher) => teacher.id !== teacherId);
+
+    // Save the updated class
+    const updatedClass = await foundClass.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: updatedClass,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: {
+        code: 'internal_server_error',
+        message: err.message,
+      },
+    });
+  }
+}
+
+//Remove student
+async function removeStudent(req, res) {
+  try {
+    const { classCode, studentId } = req.params;
+
+    // Find the class by classCode
+    const foundClass = await Class.findOne({ classCode });
+
+    // Validate that the class exists
+    if (!foundClass) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        error: {
+          code: 'not_found',
+          message: 'Class not found.',
+        },
+      });
+    }
+
+    // Remove the student by their ID from the students array
+    foundClass.students = foundClass.students.filter((student) => student !== studentId);
+
+    // Save the updated class
+    const updatedClass = await foundClass.save();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: updatedClass,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: {
+        code: 'internal_server_error',
+        message: err.message,
+      },
+    });
+  }
+}
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
@@ -711,5 +831,8 @@ module.exports = {
   updateGradeCompositionByClassCode,
   getGradeCompositionByClassCode,
   updateFinalizeInGradeComposition,
-  getAllClasses
+  getAllClasses,
+  updateClassName,
+  removeTeacher,
+  removeStudent
 };

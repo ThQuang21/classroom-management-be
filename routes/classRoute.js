@@ -13,7 +13,10 @@ const {
     updateGradeCompositionByClassCode,
     getGradeCompositionByClassCode,
     updateFinalizeInGradeComposition,
-    getAllClasses
+    getAllClasses,
+    updateClassName,
+    removeTeacher,
+    removeStudent
 } = require('../controllers/class');
 
 router.post('/', createClass);
@@ -24,6 +27,10 @@ router.get('/list-classes-by-teacher/:teacherId', listClassesByTeacherId);
 router.get('/list-classes-by-student/:studentId', listClassesByStudentId);
 router.post('/join-class', joinClassByLink);
 router.post('/join-class-by-code', joinClassByCode);
+router.put('/updateClassName/:classCode', updateClassName);
+router.delete('/removeTeacher/:classCode/:teacherId', removeTeacher);
+router.delete('/removeStudent/:classCode/:studentId', removeStudent);
+
 
 //Invite
 router.post('/invite-by-email', inviteByEmail)
