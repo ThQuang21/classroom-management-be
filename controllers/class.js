@@ -676,6 +676,28 @@ const updateFinalizeInGradeComposition = async (req, res) => {
   }
 };
 
+
+// Get all classes
+const getAllClasses = async (req, res) => {
+  try {
+    const classes = await Class.find();
+
+    return res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      data: classes,
+    });
+
+  } catch (err) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      error: {
+        code: "bad_request",
+        message: err.message,
+      },
+    });
+  }
+};
+
 module.exports = { 
   createClass,
   listClassesByTeacherId,
@@ -688,5 +710,6 @@ module.exports = {
   inviteByEmail,
   updateGradeCompositionByClassCode,
   getGradeCompositionByClassCode,
-  updateFinalizeInGradeComposition
+  updateFinalizeInGradeComposition,
+  getAllClasses
 };

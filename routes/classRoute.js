@@ -12,10 +12,12 @@ const {
     inviteByEmail,
     updateGradeCompositionByClassCode,
     getGradeCompositionByClassCode,
-    updateFinalizeInGradeComposition
+    updateFinalizeInGradeComposition,
+    getAllClasses
 } = require('../controllers/class');
 
 router.post('/', createClass);
+router.get('/get-all', getAllClasses);
 router.get('/:classCode', getClassByClassCode);
 router.get('/invite/:invitationCode', getClassByInvitationCode);
 router.get('/list-classes-by-teacher/:teacherId', listClassesByTeacherId);
