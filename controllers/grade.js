@@ -335,7 +335,7 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
         foundGrade.student.fullName = fullName;
       }
 
-      console.log(foundGrade)
+      // console.log(foundGrade)
 
       const foundClass = await Class.Class.findOne({ classCode });
       for (const [gradeCompositionName, gradeValue] of Object.entries(gradeDetails)) {
@@ -350,7 +350,7 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
               message: `Invalid grade value for ${gradeCompositionName}. Grade value must be a number.`,
             },
           });
-        } else if (gradeValue < 0 || gradeValue > 10) {
+        } else if (gradeValue < -1 || gradeValue > 10) {
           return res.status(StatusCodes.BAD_REQUEST).json({
             status: StatusCodes.BAD_REQUEST,
             error: {
