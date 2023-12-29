@@ -120,7 +120,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   successRedirect: "/",
   failureRedirect: CLIENT_URL + '/login'
   }), async (req, res) => {
-    // res.redirect(CLIENT_URL);
+    res.redirect(CLIENT_URL);
     console.log("req.user", req.user)
 
 });
