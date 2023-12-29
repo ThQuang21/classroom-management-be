@@ -114,6 +114,14 @@ router.get('/google/callback', passport.authenticate('google', {
     }
 });
 
+router.get("/facebook", passport.authenticate("facebook", { scope: ["profile", "email"] }));
+
+router.get('/facebook/callback', passport.authenticate('facebook', {
+  failureRedirect: CLIENT_URL + '/login',
+  failureFlash: true
+  }), async (req, res) => {
+    // res.redirect(CLIENT_URL);
+});
 
 
 module.exports = router;
