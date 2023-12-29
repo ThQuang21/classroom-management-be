@@ -8,6 +8,7 @@ const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
 FACEBOOK_APP_ID = process.env.FACEBOOK_CLIENT_ID;
 FACEBOOK_APP_SECRET = process.env.FACEBOOK_CLIENT_SECRET;
 
+
 passport.use(
   new GoogleStrategy(
     {
