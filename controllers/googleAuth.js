@@ -29,6 +29,7 @@ passport.use(
       clientID: FACEBOOK_APP_ID,
       clientSecret: FACEBOOK_APP_SECRET,
       callbackURL: "https://classroom-management-be.vercel.app/auth/facebook/callback",
+      profile: ['id', 'displayName'] // You have the option to specify the profile objects you want returned
     },
     function (accessToken, refreshToken, profile, done) {
       done(null, profile);

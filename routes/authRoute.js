@@ -114,7 +114,7 @@ router.get('/google/callback', passport.authenticate('google', {
     }
 });
 
-router.get('/facebook', passport.authenticate('facebook', { scope : ['email'] }));
+router.get('/facebook', passport.authenticate('facebook'));
 
 router.get('/facebook/callback', passport.authenticate('facebook', {
   failureRedirect: CLIENT_URL + '/login'
