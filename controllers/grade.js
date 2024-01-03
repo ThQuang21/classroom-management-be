@@ -131,8 +131,8 @@ async function getGradesByClassCode(req, res) {
 
       const studentData = studentGradesMap.get(studentId);
       
-      console.log('grade', grade);
-
+      // console.log('grade', grade);
+      let total = 0;
       for (let i = 0; i < grade.grades.length; i++) {
         const gradeCompositionId = grade.grades[i].gradeCompositionId;
 
@@ -141,9 +141,17 @@ async function getGradesByClassCode(req, res) {
         );
 
         // Add the grade to the student data
-        studentData[gradeComposition.name] = grade.grades[i].grade;
+        if (grade.grades[i].grade === -1) {
+          studentData[gradeComposition.name] = "";
+        } else {
+          studentData[gradeComposition.name] = grade.grades[i].grade;
+          // Count total 
+          total += grade.grades[i].grade * gradeComposition.gradeScale;
+        }
+       
       }
-
+      const gradeTotal = total / 100;
+      studentData["total"] = Number(gradeTotal.toFixed(2));
     });
 
     // Convert the map values to an array
