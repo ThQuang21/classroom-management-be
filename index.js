@@ -10,6 +10,7 @@ const classRoutes = require('./routes/classRoute');
 const gradeRoutes = require('./routes/gradeRoute');
 const gradeReviews = require('./routes/gradeReviewRoute');
 const notifications = require('./routes/notificationRoute');
+const applyPassportStrategy = require("./utils/passport")
 
 require("dotenv").config();
 require("./utils/connectDB")
@@ -26,6 +27,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+applyPassportStrategy.applyPassportStrategy(passport);
 
 const port = 3000
 
@@ -50,10 +52,10 @@ app.get('/', (req, res) => {
 })
 
 app.use('/auth', authRoutes); // Authentication routes
-app.use('/classes', classRoutes); // Class routes
-app.use('/grades', gradeRoutes); // Grade routes
-app.use('/gradeReviews', gradeReviews); // Grade review routes
-app.use('/notifications', notifications); // Grade review routes
+app.use("/classes", passport.authenticate("jwt", { session: false }), classRoutes); // Class routes
+app.use("/grades", passport.authenticate("jwt", { session: false }), gradeRoutes); // Grade routes
+app.use("/gradeReviews", passport.authenticate("jwt", { session: false }), gradeReviews); // Grade routes
+app.use("/notifications", passport.authenticate("jwt", { session: false }), notifications); // Notification routes
 
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
