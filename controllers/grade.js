@@ -275,7 +275,7 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
       const foundGrade = await Grade.findOne(query);
       // console.log('foundGrade', foundGrade)
       // console.log('studentId', studentId)
-      // console.log('fullName', fullName)
+      console.log('gradeDetails', gradeDetails)
     
 
       if (!foundGrade) {
