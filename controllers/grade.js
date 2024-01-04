@@ -373,15 +373,15 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
           (composition) => composition.name === gradeCompositionName
         );
 
-        if (!foundGradeComposition) {
-          return res.status(StatusCodes.NOT_FOUND).json({
-            status: StatusCodes.NOT_FOUND,
-            error: {
-              code: 'not_found',
-              message: `GradeComposition ${gradeCompositionName} not found.`,
-            },
-          });
-        }
+        // if (!foundGradeComposition) {
+        //   return res.status(StatusCodes.NOT_FOUND).json({
+        //     status: StatusCodes.NOT_FOUND,
+        //     error: {
+        //       code: 'not_found',
+        //       message: `GradeComposition ${gradeCompositionName} not found.`,
+        //     },
+        //   });
+        // }
 
         const gradeIndex = foundGrade.grades.findIndex(
           (grade) => String(grade.gradeCompositionId) === String(foundGradeComposition.id)
