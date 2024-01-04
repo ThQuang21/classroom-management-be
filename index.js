@@ -31,21 +31,21 @@ applyPassportStrategy.applyPassportStrategy(passport);
 
 const port = 3000
 
-// const http = require("http");
-// const server = http.createServer(app);
-// const io = new Server(server, {
-//   cors: {
-//     origin: '*'
-//   },
-// });
+const http = require("http");
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*'
+  },
+});
 
-// io.on('connection', (socket) => {
-//   console.log(`User connected ${socket.id}`);
-// });
-// io.on("identity", (userId) => {
-//   console.log(`User connected ${socket.id}`);
-//   console.log(`User connected ${userId}`);
-// });
+io.on('connection', (socket) => {
+  console.log(`User connected ${socket.id}`);
+});
+io.on("identity", (userId) => {
+  console.log(`User connected ${socket.id}`);
+  console.log(`User connected ${userId}`);
+});
 
 app.get('/', (req, res) => {
   res.send('Classroom Management')
