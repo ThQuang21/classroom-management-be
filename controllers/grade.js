@@ -261,7 +261,7 @@ async function updateGradeByClassCodeAndStudentId(req, res) {
     const gradesToUpdate = req.body.gradesToUpdate; 
 
     for (const gradeToUpdate of gradesToUpdate) {
-      const { fullName, studentId, id, total, ...gradeDetails } = gradeToUpdate;
+      const { fullName, studentId, id, ...gradeDetails } = gradeToUpdate;
 
       // Find the student's grades by classCode and fullName
       const query = { classCode };
